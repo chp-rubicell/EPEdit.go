@@ -1,8 +1,9 @@
 package epedit
 
 import (
-	"bufio"
-	"os"
+	"fmt"
+	"io"
+	"strconv"
 	"strings"
 )
 
@@ -50,73 +51,143 @@ func NewIDD() *IDD {
 
 // * Parse IDD file into IDD struct
 
-// open IDD file in filepath and return pointer for parsed IDD struct
-func ParseIDD(filepath string) (*IDD, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+// state for tracking current parser mode
+type parseState int
 
+const (
+	stateLookingForClass parseState = iota
+	stateInClass
+)
+
+// return pointer for parsed IDD struct using Lexer
+func ParseIDD(r io.Reader) (*IDD, error) {
+	lexer := NewLexer(r)
 	idd := NewIDD()
-	scanner := bufio.NewScanner(file)
 
 	// state machine
+	state := stateLookingForClass
 	var currentGroup string
 	var currentClass *ClassDef
 	var currentField *FieldDef
 
-	for scanner.Scan() {
-		line := scanner.Text()
+	// temporary text until comma or semicolon token
+	var lastText string
 
-		// 1. remove comments and whitespaces
-		if idx := strings.Index(line, "!"); idx != -1 {
-			line = line[:idx]
-		}
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
+	for {
+		tok := lexer.NextToken()
 
-		// 2. parse \group
-		if strings.HasPrefix(line, `\group`) {
-			currentGroup = strings.TrimSpace(strings.TrimPrefix(line, `\group`))
-			continue
+		if tok.Type == TokenEOF {
+			break
+		}
+		if tok.Type == TokenError {
+			return nil, fmt.Errorf("Parsing error (Line %d): %s", lexer.LineNum, tok.Value)
 		}
 
-		// 3. parse metadata for class or field level
-		if strings.HasPrefix(line, `\`) {
-			if currentField != nil {
-				// currently parsing a field
-				parseFieldProperty(currentField, line)
-			} else if currentClass != nil {
-				// no current field, but parsing a class (ex. \extensible, \memo)
-				parseClassProperty(currentClass, line)
+		// 1. text token
+		if tok.Type == TokenText {
+			if strings.HasPrefix(tok.Value, `\`) {
+				// property
+				if strings.HasPrefix(tok.Value, `\group`) {
+					currentGroup = strings.TrimSpace(strings.TrimPrefix(tok.Value, `\group`))
+				} else if currentField != nil {
+					// if there is active field, add as field property
+					parseFieldProperty(currentClass, currentField, tok.Value)
+				} else if currentClass != nil {
+					// if no active field and active class, add as class property
+					parseClassProperty(currentClass, tok.Value)
+				}
+			} else {
+				// does not starts with \ (ex. "Zone", "A1")
+				// add to temporary text
+				lastText = tok.Value
 			}
 			continue
 		}
 
-		// 4. start new class or field (ends with `,` or `;`)
+		// 2. comma (,) token
+		if tok.Type == TokenComma {
+			if state == stateLookingForClass {
+				// lastText is the new class name
+				currentClass = &ClassDef{
+					Name:  lastText,
+					Group: currentGroup,
+				}
+				idd.Classes[strings.ToUpper(lastText)] = currentClass
+				currentField = nil
+				lastText = ""
+				state = stateInClass
+			} else if state == stateInClass {
+				//lastText is new field name (ex. A1)
+				newField := FieldDef{Name: lastText}
+				lastText = ""
+				currentClass.Fields = append(currentClass.Fields, newField)
+				currentField = &currentClass.Fields[len(currentClass.Fields)-1]
+			}
+			continue
+		}
+
+		// 3. semicolon (;) token
+		if tok.Type == TokenSemicolon {
+			if state == stateInClass {
+				// last field of class
+				newField := FieldDef{Name: lastText}
+				lastText = ""
+				currentClass.Fields = append(currentClass.Fields, newField)
+				currentField = &currentClass.Fields[len(currentClass.Fields)-1]
+
+				// finished inputting class, looking for new class
+				state = stateLookingForClass
+
+				// don't reset currentClass and currentField to nil
+				// more field info can follow after ;
+			}
+		}
 	}
 
-	return idd, scanner.Err()
+	return idd, nil
 }
 
 // * Helper functions for parsing class and field property
 
-func parseClassProperty(class *ClassDef, line string) {
-	if strings.HasPrefix(line, `\extensible`) {
+func parseClassProperty(class *ClassDef, val string) {
+	if strings.HasPrefix(val, `\extensible`) {
 		class.Extensible = &ExtensibleDef{}
-		// TODO: parse other info such as \extensible:#
+		// parse \extensible:# info
+		parts := strings.Split(val, ":")
+		if len(parts) == 2 {
+			if size, err := strconv.Atoi(strings.TrimSpace(parts[1])); err == nil {
+				class.Extensible.Size = size
+			}
+		}
+	} else if strings.HasPrefix(val, `\min-fields`) {
+		parts := strings.Split(val, " ")
+		if len(parts) >= 2 {
+			if minFields, err := strconv.Atoi(strings.TrimSpace(parts[1])); err == nil {
+				class.MinFields = minFields
+			}
+		}
 	}
-	// TODO: \memo, \min-fields, etc.
+	// TODO: \memo, etc.
 }
 
-func parseFieldProperty(field *FieldDef, line string) {
-	if strings.HasPrefix(line, `\type`) {
-		field.Type = strings.TrimSpace(strings.TrimPrefix(line, `\type`))
-	} else if line == `\required-field` {
+func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
+	if strings.HasPrefix(val, `\field`) {
+		// replace temporary names (ex. A1, N1)
+		field.Name = strings.TrimSpace(strings.TrimPrefix(val, `\field`))
+	} else if strings.HasPrefix(val, `\type`) {
+		field.Type = strings.TrimSpace(strings.TrimPrefix(val, `\type`))
+	} else if val == `\required-field` {
 		field.Required = true
+	} else if val == `\autosizable` {
+		field.Autosizable = true
+	} else if val == `\autocalculatable` {
+		field.Autocalculatable = true
+	} else if val == `\begin-extensible` {
+		// current field is the starting field of extensibles
+		if class.Extensible != nil {
+			class.Extensible.BeginIndex = len(class.Fields) - 1
+			// TODO: add extensible field name patterns
+		}
 	}
 	// TODO: \default, \key, etc.
 }
