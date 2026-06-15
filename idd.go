@@ -77,17 +77,17 @@ func (class *ClassDef) BuildIndices() {
 }
 
 // helper function for fixing classes with missing \begin-extensible tag
-func (class *ClassDef) fixMissingBeginIndex() {
+func (class *ClassDef) fixMissingBeginIndex() error {
 	ext := class.Extensible
 
 	// filter when size is defined but BeginIndex is -1
 	if ext == nil || ext.BeginIndex != -1 || ext.Size <= 0 {
-		return
+		return nil
 	}
 
 	numFields := len(class.Fields)
 	if numFields < ext.Size {
-		return // broken beyond repair
+		return fmt.Errorf(`IDD schema error: class "%s" have less fields (%d) than \extensible size (%d)`, class.Name, numFields, ext.Size) // broken beyond repair
 	}
 
 	// 1. extract ExtPatterns from back
@@ -118,6 +118,7 @@ func (class *ClassDef) fixMissingBeginIndex() {
 
 	// 3. apply beginIdx
 	class.Extensible.BeginIndex = beginIdx
+	return nil
 }
 
 // helper function for extracting prefix and suffix from extensible field name
@@ -267,7 +268,10 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 	// after parsing, build indices for fast searching
 	for _, class := range idd.OrderedClasses {
-		class.fixMissingBeginIndex() // fix Extensible.BeginIndex if broken
+		// fix Extensible.BeginIndex if broken
+		if err := class.fixMissingBeginIndex(); err != nil {
+			return nil, err
+		}
 		class.BuildIndices()
 	}
 
