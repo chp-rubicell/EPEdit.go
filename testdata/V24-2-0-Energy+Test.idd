@@ -1723,3 +1723,714 @@ BuildingSurface:Detailed,
   N362; \field Vertex 120 Z-coordinate
        \units m
        \type real
+
+\group Internal Gains
+
+ComfortViewFactorAngles,
+       \memo Used to specify radiant view factors for thermal comfort calculations.
+       \memo Note that the following angle factor fractions must sum up to 1.0
+       \extensible:2 - repeat last two fields, remembering to remove ; from "inner" fields.
+       \memo All surfaces must be in the same enclosure.
+  A1 , \field Name
+       \type alpha
+       \reference AllHeatTranAngFacNames
+  A2 , \field Surface 1 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N1 , \field Angle Factor 1
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A3 , \field Surface 2 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N2 , \field Angle Factor 2
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A4 , \field Surface 3 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N3 , \field Angle Factor 3
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A5 , \field Surface 4 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N4 , \field Angle Factor 4
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A6 , \field Surface 5 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N5 , \field Angle Factor 5
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A7 , \field Surface 6 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N6 , \field Angle Factor 6
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A8 , \field Surface 7 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N7 , \field Angle Factor 7
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A9 , \field Surface 8 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N8 , \field Angle Factor 8
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A10, \field Surface 9 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N9 , \field Angle Factor 9
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A11, \field Surface 10 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N10, \field Angle Factor 10
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A12, \field Surface 11 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N11, \field Angle Factor 11
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A13, \field Surface 12 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N12, \field Angle Factor 12
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A14, \field Surface 13 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N13, \field Angle Factor 13
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A15, \field Surface 14 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N14, \field Angle Factor 14
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A16, \field Surface 15 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N15, \field Angle Factor 15
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A17, \field Surface 16 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N16, \field Angle Factor 16
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A18, \field Surface 17 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N17, \field Angle Factor 17
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A19, \field Surface 18 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N18, \field Angle Factor 18
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A20, \field Surface 19 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N19, \field Angle Factor 19
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A21, \field Surface 20 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N20, \field Angle Factor 20
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A22, \field Surface 21 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N21, \field Angle Factor 21
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A23, \field Surface 22 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N22, \field Angle Factor 22
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A24, \field Surface 23 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N23, \field Angle Factor 23
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A25, \field Surface 24 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N24, \field Angle Factor 24
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A26, \field Surface 25 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N25, \field Angle Factor 25
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A27, \field Surface 26 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N26, \field Angle Factor 26
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A28, \field Surface 27 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N27, \field Angle Factor 27
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A29, \field Surface 28 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N28, \field Angle Factor 28
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A30, \field Surface 29 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N29, \field Angle Factor 29
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A31, \field Surface 30 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N30, \field Angle Factor 30
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A32, \field Surface 31 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N31, \field Angle Factor 31
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A33, \field Surface 32 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N32, \field Angle Factor 32
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A34, \field Surface 33 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N33, \field Angle Factor 33
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A35, \field Surface 34 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N34, \field Angle Factor 34
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A36, \field Surface 35 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N35, \field Angle Factor 35
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A37, \field Surface 36 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N36, \field Angle Factor 36
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A38, \field Surface 37 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N37, \field Angle Factor 37
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A39, \field Surface 38 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N38, \field Angle Factor 38
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A40, \field Surface 39 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N39, \field Angle Factor 39
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A41, \field Surface 40 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N40, \field Angle Factor 40
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A42, \field Surface 41 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N41, \field Angle Factor 41
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A43, \field Surface 42 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N42, \field Angle Factor 42
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A44, \field Surface 43 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N43, \field Angle Factor 43
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A45, \field Surface 44 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N44, \field Angle Factor 44
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A46, \field Surface 45 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N45, \field Angle Factor 45
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A47, \field Surface 46 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N46, \field Angle Factor 46
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A48, \field Surface 47 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N47, \field Angle Factor 47
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A49, \field Surface 48 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N48, \field Angle Factor 48
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A50, \field Surface 49 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N49, \field Angle Factor 49
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A51, \field Surface 50 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N50, \field Angle Factor 50
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A52, \field Surface 51 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N51, \field Angle Factor 51
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A53, \field Surface 52 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N52, \field Angle Factor 52
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A54, \field Surface 53 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N53, \field Angle Factor 53
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A55, \field Surface 54 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N54, \field Angle Factor 54
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A56, \field Surface 55 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N55, \field Angle Factor 55
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A57, \field Surface 56 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N56, \field Angle Factor 56
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A58, \field Surface 57 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N57, \field Angle Factor 57
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A59, \field Surface 58 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N58, \field Angle Factor 58
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A60, \field Surface 59 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N59, \field Angle Factor 59
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A61, \field Surface 60 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N60, \field Angle Factor 60
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A62, \field Surface 61 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N61, \field Angle Factor 61
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A63, \field Surface 62 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N62, \field Angle Factor 62
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A64, \field Surface 63 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N63, \field Angle Factor 63
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A65, \field Surface 64 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N64, \field Angle Factor 64
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A66, \field Surface 65 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N65, \field Angle Factor 65
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A67, \field Surface 66 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N66, \field Angle Factor 66
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A68, \field Surface 67 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N67, \field Angle Factor 67
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A69, \field Surface 68 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N68, \field Angle Factor 68
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A70, \field Surface 69 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N69, \field Angle Factor 69
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A71, \field Surface 70 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N70, \field Angle Factor 70
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A72, \field Surface 71 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N71, \field Angle Factor 71
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A73, \field Surface 72 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N72, \field Angle Factor 72
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A74, \field Surface 73 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N73, \field Angle Factor 73
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A75, \field Surface 74 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N74, \field Angle Factor 74
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A76, \field Surface 75 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N75, \field Angle Factor 75
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A77, \field Surface 76 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N76, \field Angle Factor 76
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A78, \field Surface 77 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N77, \field Angle Factor 77
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A79, \field Surface 78 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N78, \field Angle Factor 78
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A80, \field Surface 79 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N79, \field Angle Factor 79
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A81, \field Surface 80 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N80, \field Angle Factor 80
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A82, \field Surface 81 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N81, \field Angle Factor 81
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A83, \field Surface 82 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N82, \field Angle Factor 82
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A84, \field Surface 83 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N83, \field Angle Factor 83
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A85, \field Surface 84 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N84, \field Angle Factor 84
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A86, \field Surface 85 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N85, \field Angle Factor 85
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A87, \field Surface 86 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N86, \field Angle Factor 86
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A88, \field Surface 87 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N87, \field Angle Factor 87
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A89, \field Surface 88 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N88, \field Angle Factor 88
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A90, \field Surface 89 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N89, \field Angle Factor 89
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A91, \field Surface 90 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N90, \field Angle Factor 90
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A92, \field Surface 91 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N91, \field Angle Factor 91
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A93, \field Surface 92 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N92, \field Angle Factor 92
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A94, \field Surface 93 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N93, \field Angle Factor 93
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A95, \field Surface 94 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N94, \field Angle Factor 94
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A96, \field Surface 95 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N95, \field Angle Factor 95
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A97, \field Surface 96 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N96, \field Angle Factor 96
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A98, \field Surface 97 Name
+       \type object-list
+       \object-list AllHeatTranSurfNames
+  N97, \field Angle Factor 97
+       \type real
+       \minimum 0.0
+       \maximum 1.0
+  A99, \field Surface 98 Name
+        \type object-list
+        \object-list AllHeatTranSurfNames
+  N98,  \field Angle Factor 98
+        \type real
+        \minimum 0.0
+        \maximum 1.0
+  A100, \field Surface 99 Name
+        \type object-list
+        \object-list AllHeatTranSurfNames
+  N99,  \field Angle Factor 99
+        \type real
+        \minimum 0.0
+        \maximum 1.0
+  A101, \field Surface 100 Name
+        \type object-list
+        \object-list AllHeatTranSurfNames
+  N100; \field Angle Factor 100
+        \type real
+        \minimum 0.0
+        \maximum 1.0

@@ -66,7 +66,6 @@ func (class *ClassDef) BuildIndices() {
 
 		for i := 0; i < class.Extensible.Size; i++ {
 			if limit+i < len(class.Fields) {
-				fmt.Println(class.Name, limit+i, len(class.Fields))
 				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
 				class.Extensible.Patterns[i] = ExtPattern{
 					Prefix: prefix,
@@ -75,6 +74,50 @@ func (class *ClassDef) BuildIndices() {
 			}
 		}
 	}
+}
+
+// helper function for fixing classes with missing \begin-extensible tag
+func (class *ClassDef) fixMissingBeginIndex() {
+	ext := class.Extensible
+
+	// filter when size is defined but BeginIndex is -1
+	if ext == nil || ext.BeginIndex != -1 || ext.Size <= 0 {
+		return
+	}
+
+	numFields := len(class.Fields)
+	if numFields < ext.Size {
+		return // broken beyond repair
+	}
+
+	// 1. extract ExtPatterns from back
+	patterns := make([]ExtPattern, ext.Size)
+	for i := 0; i < ext.Size; i++ {
+		fieldName := class.Fields[numFields-ext.Size+i].Name
+		prefix, suffix := extractPrefixSuffix(fieldName)
+		patterns[i] = ExtPattern{Prefix: prefix, Suffix: suffix}
+	}
+
+	// 2. match pattern from back
+	beginIdx := numFields
+	for i := numFields - 1; i >= 0; i-- {
+		// get offset within extensible group
+		offset := ext.Size - 1 - ((numFields - 1 - i) % ext.Size)
+
+		pattern := patterns[offset]
+		name := class.Fields[i].Name
+
+		// if pattern does not match, that is the beginning index
+		if !strings.HasPrefix(name, pattern.Prefix) || !strings.HasSuffix(name, pattern.Suffix) {
+			break
+		}
+
+		// if matched, move the beginning index
+		beginIdx = i
+	}
+
+	// 3. apply beginIdx
+	class.Extensible.BeginIndex = beginIdx
 }
 
 // helper function for extracting prefix and suffix from extensible field name
@@ -224,6 +267,7 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 	// after parsing, build indices for fast searching
 	for _, class := range idd.OrderedClasses {
+		class.fixMissingBeginIndex() // fix Extensible.BeginIndex if broken
 		class.BuildIndices()
 	}
 
