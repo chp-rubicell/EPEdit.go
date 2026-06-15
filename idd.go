@@ -103,11 +103,9 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 				// add to temporary text
 				lastText = tok.Value
 			}
-			continue
-		}
 
-		// 2. comma (,) token
-		if tok.Type == TokenComma {
+		} else if tok.Type == TokenComma {
+			// 2. comma (,) token
 			switch state {
 			case stateLookingForClass:
 				// lastText is the new class name
@@ -122,25 +120,44 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 				currentField = nil
 				lastText = ""
 				state = stateInClass
+
 			case stateInClass:
-				//lastText is new field name (ex. A1)
-				newField := FieldDef{Name: lastText}
+				// if has extensible, skip after first set of extensible fields
+				var limit = -1
+				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
+					// first set of extensible fields
+					limit = currentClass.Extensible.BeginIndex + currentClass.Extensible.Size
+				}
+				if limit >= 0 && len(currentClass.Fields) >= limit {
+					currentField = nil
+				} else {
+					// lastText is new field name (ex. A1)
+					newField := FieldDef{Name: lastText}
+					currentClass.Fields = append(currentClass.Fields, newField)
+					currentField = &currentClass.Fields[len(currentClass.Fields)-1]
+				}
 				lastText = ""
-				currentClass.Fields = append(currentClass.Fields, newField)
-				currentField = &currentClass.Fields[len(currentClass.Fields)-1]
 			}
-			continue
-		}
 
-		// 3. semicolon (;) token
-		if tok.Type == TokenSemicolon {
+		} else if tok.Type == TokenSemicolon {
+			// 3. semicolon (;) token
 			if state == stateInClass {
-				// last field of class
-				newField := FieldDef{Name: lastText}
-				lastText = ""
-				currentClass.Fields = append(currentClass.Fields, newField)
-				currentField = &currentClass.Fields[len(currentClass.Fields)-1]
+				// if has extensible, skip after first set of extensible fields
+				var limit = -1
+				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
+					// first set of extensible fields
+					limit = currentClass.Extensible.BeginIndex + currentClass.Extensible.Size
+				}
+				if limit >= 0 && len(currentClass.Fields) >= limit {
+					currentField = nil
+				} else {
+					// last field of class
+					newField := FieldDef{Name: lastText}
+					currentClass.Fields = append(currentClass.Fields, newField)
+					currentField = &currentClass.Fields[len(currentClass.Fields)-1]
+				}
 
+				lastText = ""
 				// finished inputting class, looking for new class
 				state = stateLookingForClass
 
@@ -157,7 +174,10 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 func parseClassProperty(class *ClassDef, val string) {
 	if strings.HasPrefix(val, `\extensible`) {
-		class.Extensible = &ExtensibleDef{}
+		class.Extensible = &ExtensibleDef{
+			BeginIndex: -1, // -1 indicates before parsing the value
+			Size:       -1,
+		}
 		// parse \extensible:# info
 		parts := strings.Split(val, ":")
 		if len(parts) == 2 {
@@ -180,20 +200,26 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 	if after, found := strings.CutPrefix(val, `\field`); found {
 		// replace temporary names (ex. A1, N1)
 		field.Name = strings.TrimSpace(after)
-	} else if after, found := strings.CutPrefix(val, `\type`); found {
-		field.Type = strings.TrimSpace(after)
 	} else if val == `\required-field` {
 		field.Required = true
-	} else if val == `\autosizable` {
-		field.Autosizable = true
-	} else if val == `\autocalculatable` {
-		field.Autocalculatable = true
 	} else if val == `\begin-extensible` {
 		// current field is the starting field of extensibles
 		if class.Extensible != nil {
 			class.Extensible.BeginIndex = len(class.Fields) - 1
 			// TODO: add extensible field name patterns
 		}
+	} else if after, found := strings.CutPrefix(val, `\units`); found {
+		field.Units = strings.TrimSpace(after)
+	} else if after, found := strings.CutPrefix(val, `\default`); found {
+		field.Default = strings.TrimSpace(after)
+	} else if val == `\autosizable` {
+		field.Autosizable = true
+	} else if val == `\autocalculatable` {
+		field.Autocalculatable = true
+	} else if after, found := strings.CutPrefix(val, `\type`); found {
+		field.Type = strings.TrimSpace(after)
+	} else if after, found := strings.CutPrefix(val, `\key`); found {
+		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
 	// TODO: \default, \key, etc.
 }
