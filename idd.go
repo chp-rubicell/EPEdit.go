@@ -39,13 +39,15 @@ type ClassDef struct {
 
 // IDD object that contains all of the definitions
 type IDD struct {
-	Version string
-	Classes map[string]*ClassDef // map for fast search (without capitalization)
+	Version        string
+	Classes        map[string]*ClassDef // map for fast search (without capitalization)
+	OrderedClasses []*ClassDef          // for preserving order during export
 }
 
 func NewIDD() *IDD {
 	return &IDD{
-		Classes: make(map[string]*ClassDef),
+		Classes:        make(map[string]*ClassDef),
+		OrderedClasses: make([]*ClassDef, 0),
 	}
 }
 
@@ -87,8 +89,8 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 		if tok.Type == TokenText {
 			if strings.HasPrefix(tok.Value, `\`) {
 				// property
-				if strings.HasPrefix(tok.Value, `\group`) {
-					currentGroup = strings.TrimSpace(strings.TrimPrefix(tok.Value, `\group`))
+				if after, found := strings.CutPrefix(tok.Value, `\group`); found {
+					currentGroup = strings.TrimSpace(after)
 				} else if currentField != nil {
 					// if there is active field, add as field property
 					parseFieldProperty(currentClass, currentField, tok.Value)
@@ -106,17 +108,21 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 		// 2. comma (,) token
 		if tok.Type == TokenComma {
-			if state == stateLookingForClass {
+			switch state {
+			case stateLookingForClass:
 				// lastText is the new class name
 				currentClass = &ClassDef{
 					Name:  lastText,
 					Group: currentGroup,
 				}
+				// add to map (for fast searching)
 				idd.Classes[strings.ToUpper(lastText)] = currentClass
+				// add to slice (for preserving order)
+				idd.OrderedClasses = append(idd.OrderedClasses, currentClass)
 				currentField = nil
 				lastText = ""
 				state = stateInClass
-			} else if state == stateInClass {
+			case stateInClass:
 				//lastText is new field name (ex. A1)
 				newField := FieldDef{Name: lastText}
 				lastText = ""
@@ -171,11 +177,11 @@ func parseClassProperty(class *ClassDef, val string) {
 }
 
 func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
-	if strings.HasPrefix(val, `\field`) {
+	if after, found := strings.CutPrefix(val, `\field`); found {
 		// replace temporary names (ex. A1, N1)
-		field.Name = strings.TrimSpace(strings.TrimPrefix(val, `\field`))
-	} else if strings.HasPrefix(val, `\type`) {
-		field.Type = strings.TrimSpace(strings.TrimPrefix(val, `\type`))
+		field.Name = strings.TrimSpace(after)
+	} else if after, found := strings.CutPrefix(val, `\type`); found {
+		field.Type = strings.TrimSpace(after)
 	} else if val == `\required-field` {
 		field.Required = true
 	} else if val == `\autosizable` {

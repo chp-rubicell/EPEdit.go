@@ -83,13 +83,14 @@ func (l *Lexer) tokenizeLine(line string) {
 	var textBuilder strings.Builder
 
 	for _, char := range line {
-		if char == ',' {
+		switch char {
+		case ',':
 			l.pushTextToken(&textBuilder)
 			l.buffer = append(l.buffer, Token{Type: TokenComma, Value: ","})
-		} else if char == ';' {
+		case ';':
 			l.pushTextToken(&textBuilder)
 			l.buffer = append(l.buffer, Token{Type: TokenSemicolon, Value: ";"})
-		} else {
+		default:
 			textBuilder.WriteRune(char) // add letter to textBuilder
 		}
 	}

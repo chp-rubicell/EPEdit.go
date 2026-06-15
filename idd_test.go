@@ -21,7 +21,7 @@ func TestParseIDD(t *testing.T) {
 		t.Fatalf("Error occurred while parsing IDD: %v", err)
 	}
 
-	formattedJSON, err := json.MarshalIndent(idd, "", " ")
+	formattedJSON, err := json.MarshalIndent(idd, "", "  ")
 	if err != nil {
 		t.Fatalf("Conversion error: %v", err)
 	}
