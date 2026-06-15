@@ -66,6 +66,7 @@ func (class *ClassDef) BuildIndices() {
 
 		for i := 0; i < class.Extensible.Size; i++ {
 			if limit+i < len(class.Fields) {
+				fmt.Println(class.Name, limit+i, len(class.Fields))
 				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
 				class.Extensible.Patterns[i] = ExtPattern{
 					Prefix: prefix,
@@ -78,28 +79,14 @@ func (class *ClassDef) BuildIndices() {
 
 // helper function for extracting prefix and suffix from extensible field name
 func extractPrefixSuffix(name string) (prefix string, suffix string) {
-	startIndex, endIndex := -1, -1
+	startIndex, endIndex := GetContinuousDigitsIndices(name)
 
-	for byteIndex, char := range name {
-		if char >= '0' && char <= '9' {
-			if startIndex == -1 {
-				startIndex = byteIndex
-			}
-		} else if startIndex != -1 {
-			endIndex = byteIndex
-			break
-		}
-	}
-
-	if startIndex != -1 {
-		if endIndex == -1 {
-			endIndex = len(name) // if name ends with number (ex. "Vertex 1")
-		}
+	if startIndex > -1 {
 		return name[:startIndex], name[endIndex:]
+	} else {
+		// if number is not found (ex. "Wavelength"), add space at the end (ex. "Wavelength 1")
+		return name + " ", ""
 	}
-
-	// if number is not found (ex. "Wavelength"), add space at the end (ex. "Wavelength 1")
-	return name + " ", ""
 }
 
 // IDD object that contains all of the definitions
@@ -161,7 +148,10 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 					parseFieldProperty(currentClass, currentField, tok.Value)
 				} else if currentClass != nil {
 					// if no active field and active class, add as class property
-					parseClassProperty(currentClass, tok.Value)
+					err := parseClassProperty(currentClass, tok.Value, lexer.LineNum)
+					if err != nil {
+						return nil, err
+					}
 				}
 			} else {
 				// does not starts with \ (ex. "Zone", "A1")
@@ -242,28 +232,39 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 // * Helper functions for parsing class and field property
 
-func parseClassProperty(class *ClassDef, val string) {
-	if strings.HasPrefix(val, `\extensible`) {
+func parseClassProperty(class *ClassDef, val string, lineNum int) error {
+	if after, found := strings.CutPrefix(val, `\extensible`); found {
 		class.Extensible = &ExtensibleDef{
 			BeginIndex: -1, // -1 indicates before parsing the value
 			Size:       -1,
 		}
 		// parse \extensible:# info
-		parts := strings.Split(val, ":")
-		if len(parts) == 2 {
-			if size, err := strconv.Atoi(strings.TrimSpace(parts[1])); err == nil {
-				class.Extensible.Size = size
+		startIndex, endIndex := GetContinuousDigitsIndices(after)
+		if startIndex > -1 {
+			size, err := strconv.Atoi(after[startIndex:endIndex])
+			if err != nil {
+				return fmt.Errorf(`Line %d: Can't convert \extensible size to number (%s)`, lineNum, after[startIndex:endIndex])
 			}
+			class.Extensible.Size = size
+		} else {
+			return fmt.Errorf(`Line %d: No number found after \extensible (%s)`, lineNum, val)
 		}
 	} else if strings.HasPrefix(val, `\min-fields`) {
 		parts := strings.Split(val, " ")
 		if len(parts) >= 2 {
-			if minFields, err := strconv.Atoi(strings.TrimSpace(parts[1])); err == nil {
-				class.MinFields = minFields
+			minFieldsString := strings.TrimSpace(parts[1])
+			minFields, err := strconv.Atoi(minFieldsString)
+			if err != nil {
+				return fmt.Errorf(`Line %d: Can't convert \min-fields to number (%s)`, lineNum, minFieldsString)
 			}
+			class.MinFields = minFields
+		} else {
+			return fmt.Errorf(`Line %d: No number found after \min-fields (%s)`, lineNum, val)
 		}
 	}
 	// TODO: \memo, etc.
+
+	return nil
 }
 
 func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
