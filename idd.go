@@ -22,19 +22,84 @@ type FieldDef struct {
 	// TODO: add more later
 }
 
-// IDD \extensible field properties (used in ClassDef)
+// store extensible field names as Prefix + # + Suffix
+// ex. "Vertex 1 X-coordinate" -> "Vertex ", " X-coordinate"
+type ExtPattern struct {
+	Prefix string
+	Suffix string
+}
+
+// IDD extensible field properties (used in ClassDef)
 type ExtensibleDef struct {
 	BeginIndex int // start index of the extensible fields
 	Size       int // size of the extensible fields (ex. X, Y, Z coords -> 3)
+	Patterns   []ExtPattern
 }
 
 // IDD class definition (ex. Building, Zone)
 type ClassDef struct {
-	Name       string     // original name with capitalization
-	Group      string     // \group
-	Fields     []FieldDef // array of FieldDefs
-	MinFields  int
-	Extensible *ExtensibleDef // nil if empty
+	Name              string     // original name with capitalization
+	Group             string     // \group
+	Fields            []FieldDef // array of FieldDefs
+	MinFields         int
+	BaseFieldIndexMap map[string]int // for fast indexing of fields (excludes extensible fields)
+	Extensible        *ExtensibleDef // nil if empty
+}
+
+// run after IDD parsing to build indices
+func (class *ClassDef) BuildIndices() {
+	class.BaseFieldIndexMap = make(map[string]int)
+
+	limit := len(class.Fields)
+	if class.Extensible != nil {
+		limit = class.Extensible.BeginIndex
+	}
+
+	// add non-extensible fields to BaseFieldIndexMap
+	for i := 0; i < limit; i++ {
+		class.BaseFieldIndexMap[class.Fields[i].Name] = i
+	}
+
+	// add extensible fields to Extensible.Patterns
+	if class.Extensible != nil && limit < len(class.Fields) {
+		class.Extensible.Patterns = make([]ExtPattern, class.Extensible.Size)
+
+		for i := 0; i < class.Extensible.Size; i++ {
+			if limit+i < len(class.Fields) {
+				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
+				class.Extensible.Patterns[i] = ExtPattern{
+					Prefix: prefix,
+					Suffix: suffix,
+				}
+			}
+		}
+	}
+}
+
+// helper function for extracting prefix and suffix from extensible field name
+func extractPrefixSuffix(name string) (prefix string, suffix string) {
+	startIndex, endIndex := -1, -1
+
+	for byteIndex, char := range name {
+		if char >= '0' && char <= '9' {
+			if startIndex == -1 {
+				startIndex = byteIndex
+			}
+		} else if startIndex != -1 {
+			endIndex = byteIndex
+			break
+		}
+	}
+
+	if startIndex != -1 {
+		if endIndex == -1 {
+			endIndex = len(name) // if name ends with number (ex. "Vertex 1")
+		}
+		return name[:startIndex], name[endIndex:]
+	}
+
+	// if number is not found (ex. "Wavelength"), add space at the end (ex. "Wavelength 1")
+	return name + " ", ""
 }
 
 // IDD object that contains all of the definitions
@@ -123,7 +188,7 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 
 			case stateInClass:
 				// if has extensible, skip after first set of extensible fields
-				var limit = -1
+				limit := -1
 				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
 					// first set of extensible fields
 					limit = currentClass.Extensible.BeginIndex + currentClass.Extensible.Size
@@ -143,7 +208,7 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 			// 3. semicolon (;) token
 			if state == stateInClass {
 				// if has extensible, skip after first set of extensible fields
-				var limit = -1
+				limit := -1
 				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
 					// first set of extensible fields
 					limit = currentClass.Extensible.BeginIndex + currentClass.Extensible.Size
@@ -165,6 +230,11 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 				// more field info can follow after ;
 			}
 		}
+	}
+
+	// after parsing, build indices for fast searching
+	for _, class := range idd.OrderedClasses {
+		class.BuildIndices()
 	}
 
 	return idd, nil
