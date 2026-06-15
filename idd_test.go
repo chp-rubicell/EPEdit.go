@@ -8,7 +8,8 @@ import (
 )
 
 func TestParseIDD(t *testing.T) {
-	filepath := "testdata/V24-2-0-Energy+Test.idd"
+	filepath := "testdata/V9-0-0-Energy+Test.idd"
+	// filepath := "testdata/V24-2-0-Energy+Test.idd"
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Printf("Failed to open file: %v\n", err)

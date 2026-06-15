@@ -63,7 +63,7 @@ const (
 
 // return pointer for parsed IDD struct using Lexer
 func ParseIDD(r io.Reader) (*IDD, error) {
-	lexer := NewLexer(r)
+	lexer := NewLexer(r, true)
 	idd := NewIDD()
 
 	// state machine

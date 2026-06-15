@@ -26,15 +26,18 @@ type Token struct {
 // lexer
 type Lexer struct {
 	scanner *bufio.Scanner
-	LineNum int     // current line number (for debugging)
 	buffer  []Token // queue for storing multiple tokens in one line
+	LineNum int     // current line number (for debugging)
+	IsIDD   bool    //  for IDD parsing
 }
 
 // lexer constructor
-func NewLexer(r io.Reader) *Lexer {
+func NewLexer(r io.Reader, isIDD bool) *Lexer {
 	return &Lexer{
 		scanner: bufio.NewScanner(r),
 		buffer:  make([]Token, 0),
+		LineNum: 0,
+		IsIDD:   isIDD,
 	}
 }
 
@@ -51,11 +54,6 @@ func (l *Lexer) NextToken() Token {
 	for l.scanner.Scan() {
 		l.LineNum++
 		line := l.scanner.Text()
-
-		// remove comments
-		if idx := strings.Index(line, "!"); idx != -1 {
-			line = line[:idx]
-		}
 
 		// tokenize line and add to buffer
 		l.tokenizeLine(line)
@@ -82,7 +80,23 @@ func (l *Lexer) tokenizeLine(line string) {
 	// for joining strings
 	var textBuilder strings.Builder
 
-	for _, char := range line {
+	// remove comments
+	if idx := strings.IndexByte(line, '!'); idx >= 0 {
+		line = line[:idx]
+	}
+
+	for byteIndex, char := range line {
+		// if IDD mode and starts with \
+		if l.IsIDD && char == '\\' {
+			l.pushTextToken(&textBuilder)
+			l.buffer = append(l.buffer, Token{
+				Type:  TokenText,
+				Value: strings.TrimSpace(line[byteIndex:]),
+			})
+			break
+		}
+
+		// parse regular letters
 		switch char {
 		case ',':
 			l.pushTextToken(&textBuilder)

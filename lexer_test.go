@@ -15,7 +15,7 @@ func TestLexer(t *testing.T) {
 	}
 	defer file.Close()
 
-	lexer := NewLexer(file)
+	lexer := NewLexer(file, true)
 
 	// EOF를 만날 때까지 토큰 뽑아내기
 	for {
