@@ -90,6 +90,23 @@ TokenLoop:
 	return idf, nil
 }
 
+// * Open and parse IDD file
+
+func NewIDFFromFile(filepath string, idd *IDD) (*IDF, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	idf, err := ParseIDF(file, idd)
+	if err != nil {
+		return nil, err
+	}
+
+	return idf, nil
+}
+
 // * IDF manipulation API (Read)
 
 // get object by class name
@@ -189,7 +206,7 @@ func (obj *IDFObject) Set(fieldName string, value any) error {
 	}
 
 	// 2. set value
-	obj.Values[targetIndex] = AnyToString(value)
+	obj.Values[targetIndex] = strings.TrimSpace(AnyToString(value))
 	return nil
 }
 
@@ -247,19 +264,41 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 	return fmt.Errorf(`Failed to remove object: can't find object in class "%s" does not exists`, target.Class.Name)
 }
 
-// * Open and parse IDD file
+// * Export
 
-func NewIDFFromFile(filepath string, idd *IDD) (*IDF, error) {
-	file, err := os.Open(filepath)
-	if err != nil {
-		return nil, err
+// write IDFObject to io.Writer
+func (obj *IDFObject) WriteTo(w io.Writer) error {
+	fmt.Fprintf(w, "  %s", obj.Class.Name)
+
+	// 1. find last field with value
+	lastIdx := -1
+	for i := len(obj.Values) - 1; i >= 0; i-- {
+		if strings.TrimSpace(obj.Values[i]) != "" {
+			lastIdx = i
+			break
+		}
 	}
-	defer file.Close()
 
-	idf, err := ParseIDF(file, idd)
-	if err != nil {
-		return nil, err
+	// 2. if all fields are empty
+	if lastIdx == -1 {
+		fmt.Fprintf(w, ";\n\n")
 	}
 
-	return idf, nil
+	// 3. print until lastIdx
+	fmt.Fprintln(w, ",")
+	for i := 0; i <= lastIdx; i++ {
+		val := obj.Values[i]
+		fieldName := obj.Class.GetFieldName(i)
+
+		if i == lastIdx {
+			// finish with semicolon and an extra newline
+			fmt.Fprintf(w, "    %s; !- %s\n\n", val, fieldName)
+		} else {
+			fmt.Fprintf(w, "    %s, !- %s\n", val, fieldName)
+		}
+	}
+
+	return nil
 }
+
+//TODO 기본값?
