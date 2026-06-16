@@ -351,6 +351,23 @@ func extractPrefixSuffix(name string) (prefix string, suffix string) {
 	}
 }
 
+// * Open and parse IDD file
+
+func ParseIDDFile(filename string) (*IDD, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf(`Failed to open IDD file (%s): %w`, filename, err)
+	}
+	defer file.Close()
+
+	idd, err := ParseIDD(file)
+	if err != nil {
+		return nil, fmt.Errorf(`Failed to parse IDD: %w`, err)
+	}
+
+	return idd, nil
+}
+
 // * API (Read)
 
 // get index from field name (case-insensitive)
@@ -401,21 +418,4 @@ func (class *ClassDef) GetFieldName(index int) string {
 	}
 	pat := ext.Patterns[offset]
 	return fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
-}
-
-// * Open and parse IDD file
-
-func ParseIDDFile(filename string) (*IDD, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, fmt.Errorf(`Failed to open IDD file (%s): %w`, filename, err)
-	}
-	defer file.Close()
-
-	idd, err := ParseIDD(file)
-	if err != nil {
-		return nil, fmt.Errorf(`Failed to parse IDD: %w`, err)
-	}
-
-	return idd, nil
 }
