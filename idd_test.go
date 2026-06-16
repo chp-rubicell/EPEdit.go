@@ -2,7 +2,6 @@ package epedit
 
 import (
 	"fmt"
-	"os"
 	"testing"
 )
 
@@ -10,16 +9,10 @@ func TestParseIDD(t *testing.T) {
 	// filepath := "testdata/V9-0-0-Energy+Test.idd"
 	// filepath := "testdata/V24-2-0-Energy+Test.idd"
 	filepath := "testdata/V24-2-0-Energy+.idd" // class count: 848
-	file, err := os.Open(filepath)
-	if err != nil {
-		fmt.Printf("Failed to open file: %v\n", err)
-		return
-	}
-	defer file.Close()
 
-	idd, err := ParseIDD(file)
+	idd, err := NewIDDFromFile(filepath)
 	if err != nil {
-		t.Fatalf("Error occurred while parsing IDD: %v", err)
+		t.Fatalf("Error occurred while opening and parsing IDD: %v", err)
 	}
 
 	// formattedJSON, err := json.MarshalIndent(idd.OrderedClasses, "", "  ")

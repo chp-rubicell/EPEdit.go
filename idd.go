@@ -3,6 +3,7 @@ package epedit
 import (
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -341,4 +342,21 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
 	// TODO: \default, \key, etc.
+}
+
+// * Open and parse IDD file
+
+func NewIDDFromFile(filepath string) (*IDD, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	idd, err := ParseIDD(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return idd, nil
 }
