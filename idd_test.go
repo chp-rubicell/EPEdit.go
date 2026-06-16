@@ -11,7 +11,7 @@ func TestParseIDD(t *testing.T) {
 	// filepath := "testdata/V24-2-0-Energy+Test.idd"
 	filepath := "testdata/V24-2-0-Energy+.idd" // class count: 848
 
-	idd, err := NewIDDFromFile(filepath)
+	idd, err := ParseIDDFile(filepath)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestParseIDD(t *testing.T) {
 }
 
 func TestIDDAPI(t *testing.T) {
-	idd, err := NewIDDFromFile("testdata/V24-2-0-Energy+.idd")
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v", err)
 	}

@@ -10,12 +10,12 @@ func TestParseIDF(t *testing.T) {
 	// filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago.idf"
 	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago_Test.idf"
 
-	idd, err := NewIDDFromFile("testdata/V24-2-0-Energy+.idd")
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := NewIDFFromFile(filepath, idd)
+	idf, err := ParseIDFFile(filepath, idd)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -27,15 +27,15 @@ func TestParseIDF(t *testing.T) {
 	fmt.Println(string(formattedJSON))
 }
 
-func TestUsage(t *testing.T) {
+func TestIDFEdit(t *testing.T) {
 	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago_Test.idf"
 
-	idd, err := NewIDDFromFile("testdata/V24-2-0-Energy+.idd")
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := NewIDFFromFile(filepath, idd)
+	idf, err := ParseIDFFile(filepath, idd)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -88,4 +88,23 @@ func TestUsage(t *testing.T) {
 	fmt.Println(string(formattedJSON))
 
 	fmt.Println(idf)
+}
+
+func TestIDFParseAndSave(t *testing.T) {
+	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago.idf"
+
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+	}
+
+	idf, err := ParseIDFFile(filepath, idd)
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
+	}
+
+	err = idf.Save("testdata/ExportTest.idf")
+	if err != nil {
+		t.Fatalf("Error occurred while saving IDF: %v\n", err)
+	}
 }
