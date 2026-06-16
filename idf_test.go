@@ -46,6 +46,9 @@ func TestUsage(t *testing.T) {
 	}
 
 	example_surf := idf.Objects["BUILDINGSURFACE:DETAILED"][0]
+
+	fmt.Println(example_surf)
+
 	formattedJSON, err := json.MarshalIndent(example_surf.Values, "", "  ")
 	if err != nil {
 		fmt.Printf("Conversion error: %v", err)
@@ -56,6 +59,8 @@ func TestUsage(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	fmt.Println(example_surf)
 
 	formattedJSON, err = json.MarshalIndent(example_surf.Values, "", "  ")
 	if err != nil {

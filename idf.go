@@ -128,8 +128,8 @@ func (idf *IDF) GetObjectByName(className string, objectName string) *IDFObject 
 	return nil
 }
 
-// get value of field as string (case-insensitive). "" if empty
-func (obj *IDFObject) GetString(fieldName string) (string, error) {
+// get value of field as string (case-insensitive, also returns error). "" if empty
+func (obj *IDFObject) GetStringErr(fieldName string) (string, error) {
 	idx, err := obj.Class.FindFieldIndex(fieldName)
 	if err != nil {
 		return "", err
@@ -141,14 +141,14 @@ func (obj *IDFObject) GetString(fieldName string) (string, error) {
 }
 
 // get value of field as string (case-insensitive, ignores error). "" if empty
-func (obj *IDFObject) String(fieldName string) string {
-	val, _ := obj.GetString(fieldName)
+func (obj *IDFObject) GetString(fieldName string) string {
+	val, _ := obj.GetStringErr(fieldName)
 	return val
 }
 
-// get value of field as float (case-insensitive). math.NaN() if empty
-func (obj *IDFObject) GetFloat(fieldName string) (float64, error) {
-	valStr, err := obj.GetString(fieldName)
+// get value of field as float (case-insensitive, also returns error). math.NaN() if empty
+func (obj *IDFObject) GetFloatErr(fieldName string) (float64, error) {
+	valStr, err := obj.GetStringErr(fieldName)
 	if err != nil {
 		return math.NaN(), err
 	}
@@ -160,14 +160,14 @@ func (obj *IDFObject) GetFloat(fieldName string) (float64, error) {
 }
 
 // get value of field as float (case-insensitive, ignores error). math.NaN() if empty
-func (obj *IDFObject) Float(fieldName string) float64 {
-	val, _ := obj.GetFloat(fieldName)
+func (obj *IDFObject) GetFloat(fieldName string) float64 {
+	val, _ := obj.GetFloatErr(fieldName)
 	return val
 }
 
-// get value of field as int (case-insensitive). -1 if empty
-func (obj *IDFObject) GetInt(fieldName string) (int, error) {
-	valStr, err := obj.GetString(fieldName)
+// get value of field as int (case-insensitive, also returns error). -1 if empty
+func (obj *IDFObject) GetIntErr(fieldName string) (int, error) {
+	valStr, err := obj.GetStringErr(fieldName)
 	if err != nil {
 		return -1, err
 	}
@@ -179,8 +179,8 @@ func (obj *IDFObject) GetInt(fieldName string) (int, error) {
 }
 
 // get value of field as int (case-insensitive, ignores error). -1 if empty
-func (obj *IDFObject) Int(fieldName string) int {
-	val, _ := obj.GetInt(fieldName)
+func (obj *IDFObject) GetInt(fieldName string) int {
+	val, _ := obj.GetIntErr(fieldName)
 	return val
 }
 
@@ -267,10 +267,22 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 // * Export
 
 // write IDFObject to io.Writer
-func (obj *IDFObject) WriteTo(w io.Writer) error {
-	fmt.Fprintf(w, "  %s", obj.Class.Name)
+func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
+	var totalWritten int64
 
-	// 1. find last field with value
+	// closure helper function
+	write := func(format string, args ...any) error {
+		n, err := fmt.Fprintf(w, format, args...)
+		totalWritten += int64(n)
+		return err
+	}
+
+	// 1. print class name
+	if err := write("  %s", obj.Class.Name); err != nil {
+		return totalWritten, err
+	}
+
+	// 2. find last field with non-empty value
 	lastIdx := -1
 	for i := len(obj.Values) - 1; i >= 0; i-- {
 		if strings.TrimSpace(obj.Values[i]) != "" {
@@ -279,26 +291,44 @@ func (obj *IDFObject) WriteTo(w io.Writer) error {
 		}
 	}
 
-	// 2. if all fields are empty
+	// 3. if all fields are empty, print ; and return
 	if lastIdx == -1 {
-		fmt.Fprintf(w, ";\n\n")
+		err := write(";\n\n")
+		return totalWritten, err
 	}
 
-	// 3. print until lastIdx
-	fmt.Fprintln(w, ",")
+	// 4. if not, print , after class name
+	if err := write(",\n"); err != nil {
+		return totalWritten, err
+	}
+
+	// 5. print until lastIdx
 	for i := 0; i <= lastIdx; i++ {
 		val := obj.Values[i]
 		fieldName := obj.Class.GetFieldName(i)
 
+		format := "    %s, !- %s\n"
 		if i == lastIdx {
 			// finish with semicolon and an extra newline
-			fmt.Fprintf(w, "    %s; !- %s\n\n", val, fieldName)
-		} else {
-			fmt.Fprintf(w, "    %s, !- %s\n", val, fieldName)
+			format = "    %s; !- %s\n\n"
+		}
+		if err := write(format, val, fieldName); err != nil {
+			return totalWritten, err
 		}
 	}
 
-	return nil
+	return totalWritten, nil
+}
+
+// * Convert to string
+
+func (obj *IDFObject) String() string {
+	var builder strings.Builder // for efficient string building
+	// use WriteTo to buffer (Builder) instead of file
+	if _, err := obj.WriteTo(&builder); err != nil {
+		return ""
+	}
+	return builder.String()
 }
 
 //TODO 기본값?
