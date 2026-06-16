@@ -26,8 +26,10 @@ type FieldDef struct {
 // store extensible field names as Prefix + # + Suffix
 // ex. "Vertex 1 X-coordinate" -> "Vertex ", " X-coordinate"
 type ExtPattern struct {
-	Prefix string
-	Suffix string
+	Prefix       string
+	Suffix       string
+	SearchPrefix string // for searching (lowercase)
+	SearchSuffix string // for searching (lowercase)
 }
 
 // IDD extensible field properties (used in ClassDef)
@@ -43,101 +45,14 @@ type ClassDef struct {
 	Group             string     // \group
 	Fields            []FieldDef // array of FieldDefs
 	MinFields         int
-	BaseFieldIndexMap map[string]int // for fast indexing of fields (excludes extensible fields)
+	BaseFieldIndexMap map[string]int // for fast indexing of fields (lowercase)
 	Extensible        *ExtensibleDef // nil if empty
-}
-
-// run after IDD parsing to build indices
-func (class *ClassDef) BuildIndices() {
-	class.BaseFieldIndexMap = make(map[string]int)
-
-	limit := len(class.Fields)
-	if class.Extensible != nil {
-		limit = class.Extensible.BeginIndex
-	}
-
-	// add non-extensible fields to BaseFieldIndexMap
-	for i := 0; i < limit; i++ {
-		class.BaseFieldIndexMap[class.Fields[i].Name] = i
-	}
-
-	// add extensible fields to Extensible.Patterns
-	if class.Extensible != nil && limit < len(class.Fields) {
-		class.Extensible.Patterns = make([]ExtPattern, class.Extensible.Size)
-
-		for i := 0; i < class.Extensible.Size; i++ {
-			if limit+i < len(class.Fields) {
-				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
-				class.Extensible.Patterns[i] = ExtPattern{
-					Prefix: prefix,
-					Suffix: suffix,
-				}
-			}
-		}
-	}
-}
-
-// helper function for fixing classes with missing \begin-extensible tag
-func (class *ClassDef) fixMissingBeginIndex() error {
-	ext := class.Extensible
-
-	// filter when size is defined but BeginIndex is -1
-	if ext == nil || ext.BeginIndex != -1 || ext.Size <= 0 {
-		return nil
-	}
-
-	numFields := len(class.Fields)
-	if numFields < ext.Size {
-		return fmt.Errorf(`IDD schema error: class "%s" have less fields (%d) than \extensible size (%d)`, class.Name, numFields, ext.Size) // broken beyond repair
-	}
-
-	// 1. extract ExtPatterns from back
-	patterns := make([]ExtPattern, ext.Size)
-	for i := 0; i < ext.Size; i++ {
-		fieldName := class.Fields[numFields-ext.Size+i].Name
-		prefix, suffix := extractPrefixSuffix(fieldName)
-		patterns[i] = ExtPattern{Prefix: prefix, Suffix: suffix}
-	}
-
-	// 2. match pattern from back
-	beginIdx := numFields
-	for i := numFields - 1; i >= 0; i-- {
-		// get offset within extensible group
-		offset := ext.Size - 1 - ((numFields - 1 - i) % ext.Size)
-
-		pattern := patterns[offset]
-		name := class.Fields[i].Name
-
-		// if pattern does not match, that is the beginning index
-		if !strings.HasPrefix(name, pattern.Prefix) || !strings.HasSuffix(name, pattern.Suffix) {
-			break
-		}
-
-		// if matched, move the beginning index
-		beginIdx = i
-	}
-
-	// 3. apply beginIdx
-	class.Extensible.BeginIndex = beginIdx
-	return nil
-}
-
-// helper function for extracting prefix and suffix from extensible field name
-func extractPrefixSuffix(name string) (prefix string, suffix string) {
-	startIndex, endIndex := GetContinuousDigitsIndices(name)
-
-	if startIndex > -1 {
-		return name[:startIndex], name[endIndex:]
-	} else {
-		// if number is not found (ex. "Wavelength"), add space at the end (ex. "Wavelength 1")
-		return name + " ", ""
-	}
 }
 
 // IDD object that contains all of the definitions
 type IDD struct {
 	Version        string
-	Classes        map[string]*ClassDef // map for fast search (without capitalization)
+	Classes        map[string]*ClassDef // map for fast search (uppercase)
 	OrderedClasses []*ClassDef          // for preserving order during export
 }
 
@@ -273,7 +188,7 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 		if err := class.fixMissingBeginIndex(); err != nil {
 			return nil, err
 		}
-		class.BuildIndices()
+		class.buildIndices()
 	}
 
 	return idd, nil
@@ -342,6 +257,150 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
 	// TODO: \default, \key, etc.
+}
+
+// * Helper functions for building IDD
+
+// run after IDD parsing to build indices
+func (class *ClassDef) buildIndices() {
+	class.BaseFieldIndexMap = make(map[string]int)
+
+	limit := len(class.Fields)
+	if class.Extensible != nil {
+		limit = class.Extensible.BeginIndex
+	}
+
+	// add non-extensible fields to BaseFieldIndexMap
+	for i := 0; i < limit; i++ {
+		lowerName := strings.ToLower(class.Fields[i].Name)
+		class.BaseFieldIndexMap[lowerName] = i
+	}
+
+	// add extensible fields to Extensible.Patterns
+	if class.Extensible != nil && limit < len(class.Fields) {
+		class.Extensible.Patterns = make([]ExtPattern, class.Extensible.Size)
+
+		for i := 0; i < class.Extensible.Size; i++ {
+			if limit+i < len(class.Fields) {
+				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
+				class.Extensible.Patterns[i] = ExtPattern{
+					Prefix:       prefix,
+					Suffix:       suffix,
+					SearchPrefix: strings.ToLower(prefix),
+					SearchSuffix: strings.ToLower(suffix),
+				}
+			}
+		}
+	}
+}
+
+// helper function for fixing classes with missing \begin-extensible tag
+func (class *ClassDef) fixMissingBeginIndex() error {
+	ext := class.Extensible
+
+	// filter when size is defined but BeginIndex is -1
+	if ext == nil || ext.BeginIndex != -1 || ext.Size <= 0 {
+		return nil
+	}
+
+	numFields := len(class.Fields)
+	if numFields < ext.Size {
+		return fmt.Errorf(`IDD schema error: class "%s" have less fields (%d) than \extensible size (%d)`, class.Name, numFields, ext.Size) // broken beyond repair
+	}
+
+	// 1. extract ExtPatterns from back
+	patterns := make([]ExtPattern, ext.Size) // temporary patterns for matching
+	for i := 0; i < ext.Size; i++ {
+		fieldName := class.Fields[numFields-ext.Size+i].Name
+		prefix, suffix := extractPrefixSuffix(fieldName)
+		patterns[i] = ExtPattern{Prefix: prefix, Suffix: suffix}
+	}
+
+	// 2. match pattern from back
+	beginIdx := numFields
+	for i := numFields - 1; i >= 0; i-- {
+		// get offset within extensible group
+		offset := ext.Size - 1 - ((numFields - 1 - i) % ext.Size)
+
+		pattern := patterns[offset]
+		name := class.Fields[i].Name
+
+		// if pattern does not match, that is the beginning index
+		if !strings.HasPrefix(name, pattern.Prefix) || !strings.HasSuffix(name, pattern.Suffix) {
+			break
+		}
+
+		// if matched, move the beginning index
+		beginIdx = i
+	}
+
+	// 3. apply beginIdx
+	class.Extensible.BeginIndex = beginIdx
+	return nil
+}
+
+// helper function for extracting prefix and suffix from extensible field name
+func extractPrefixSuffix(name string) (prefix string, suffix string) {
+	startIndex, endIndex := GetContinuousDigitsIndices(name)
+
+	if startIndex > -1 {
+		return name[:startIndex], name[endIndex:]
+	} else {
+		// if number is not found (ex. "Wavelength"), add space at the end (ex. "Wavelength 1")
+		return name + " ", ""
+	}
+}
+
+// * API (Read)
+
+// get index from field name (case-insensitive)
+func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
+	// convert to lowercase
+	searchKey := strings.ToLower(fieldName)
+
+	// 1. base fields
+	if idx, exists := class.BaseFieldIndexMap[searchKey]; exists {
+		return idx, nil
+	}
+
+	// 2. extensible fields
+	if class.Extensible != nil {
+		ext := class.Extensible
+		for offset, pat := range ext.Patterns {
+			if after, found := strings.CutPrefix(searchKey, pat.SearchPrefix); found {
+				if numStr, found := strings.CutSuffix(after, pat.SearchSuffix); found {
+					groupNum, err := strconv.Atoi(numStr)
+					if err == nil && groupNum > 0 {
+						return ext.BeginIndex + (groupNum-1)*ext.Size + offset, nil
+					}
+				}
+			}
+		}
+	}
+
+	return -1, fmt.Errorf(`Unknown field name in class "%s": %s`, class.Name, fieldName)
+}
+
+// get field name from index
+func (class *ClassDef) GetFieldName(index int) (string, error) {
+	ext := class.Extensible
+
+	// base fields
+	if ext == nil || ext.BeginIndex == -1 || index < ext.BeginIndex {
+		if index >= len(class.Fields) {
+			return "", fmt.Errorf(`Undefined field index in class "%s": %d`, class.Name, index)
+		}
+		return class.Fields[index].Name, nil
+	}
+
+	// extensible fields
+	groupNum := (index-ext.BeginIndex)/ext.Size + 1
+	offset := (index - ext.BeginIndex) % ext.Size
+	if offset >= len(ext.Patterns) {
+		return "", fmt.Errorf(`Undefined extensible field index in class "%s": %d`, class.Name, index)
+	}
+	pat := ext.Patterns[offset]
+	return fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix), nil
 }
 
 // * Open and parse IDD file

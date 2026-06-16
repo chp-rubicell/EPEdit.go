@@ -1,5 +1,32 @@
 package epedit
 
+import (
+	"fmt"
+	"strconv"
+)
+
+// convert any type to string
+func AnyToString(value any) string {
+	switch v := value.(type) {
+	case string:
+		return v
+	case int:
+		return strconv.Itoa(v)
+	case float64:
+		// prec -1: "15.0" -> "15", "15.123" -> "15.123"
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case bool:
+		if v {
+			return "Yes"
+		} else {
+			return "No"
+		}
+	default:
+		// use default formatter
+		return fmt.Sprintf("%v", v)
+	}
+}
+
 // get start and end indices of continous digits (first appearance)
 func GetContinuousDigitsIndices(name string) (startIndex int, endIndex int) {
 	startIndex, endIndex = -1, -1
