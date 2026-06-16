@@ -95,16 +95,16 @@ TokenLoop:
 
 // * Open and parse IDD file
 
-func NewIDFFromFile(filepath string, idd *IDD) (*IDF, error) {
-	file, err := os.Open(filepath)
+func ParseIDFFile(filename string, idd *IDD) (*IDF, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`Failed to open IDF file (%s): %w`, filename, err)
 	}
 	defer file.Close()
 
 	idf, err := ParseIDF(file, idd)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`Failed to parse IDF: %w`, err)
 	}
 
 	return idf, nil
@@ -247,7 +247,7 @@ func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, e
 
 	err := newObj.Update(initialValues)
 	if err != nil {
-		return nil, fmt.Errorf("Error while setting initial values: %v", err)
+		return nil, fmt.Errorf("Error while setting initial values: %w", err)
 	}
 
 	idf.Objects[searchKey] = append(idf.Objects[searchKey], newObj)
