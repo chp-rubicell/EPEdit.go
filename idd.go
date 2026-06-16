@@ -382,25 +382,25 @@ func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
 }
 
 // get field name from index
-func (class *ClassDef) GetFieldName(index int) (string, error) {
+func (class *ClassDef) GetFieldName(index int) string {
 	ext := class.Extensible
 
 	// base fields
 	if ext == nil || ext.BeginIndex == -1 || index < ext.BeginIndex {
 		if index >= len(class.Fields) {
-			return "", fmt.Errorf(`Undefined field index in class "%s": %d`, class.Name, index)
+			return ""
 		}
-		return class.Fields[index].Name, nil
+		return class.Fields[index].Name
 	}
 
 	// extensible fields
 	groupNum := (index-ext.BeginIndex)/ext.Size + 1
 	offset := (index - ext.BeginIndex) % ext.Size
 	if offset >= len(ext.Patterns) {
-		return "", fmt.Errorf(`Undefined extensible field index in class "%s": %d`, class.Name, index)
+		return ""
 	}
 	pat := ext.Patterns[offset]
-	return fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix), nil
+	return fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
 }
 
 // * Open and parse IDD file
