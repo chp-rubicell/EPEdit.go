@@ -405,16 +405,16 @@ func (class *ClassDef) GetFieldName(index int) string {
 
 // * Open and parse IDD file
 
-func NewIDDFromFile(filepath string) (*IDD, error) {
-	file, err := os.Open(filepath)
+func ParseIDDFile(filename string) (*IDD, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`Failed to open IDD file (%s): %w`, filename, err)
 	}
 	defer file.Close()
 
 	idd, err := ParseIDD(file)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`Failed to parse IDD: %w`, err)
 	}
 
 	return idd, nil
