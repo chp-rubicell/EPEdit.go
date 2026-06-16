@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// TODO: WriteTo 포매팅
+// TODO: 기본값 처리
+
 // * Object definition
 
 type Fields map[string]any // for ease of use for field input
@@ -210,6 +213,16 @@ func (obj *IDFObject) Set(fieldName string, value any) error {
 	return nil
 }
 
+// update object from map
+func (obj *IDFObject) Update(values Fields) error {
+	for key, val := range values {
+		if err := obj.Set(key, val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // add object to IDF
 func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, error) {
 	searchKey := strings.ToUpper(className)
@@ -232,10 +245,9 @@ func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, e
 		Values: make([]string, 0, minFields),
 	}
 
-	for key, val := range initialValues {
-		if err := newObj.Set(key, val); err != nil {
-			return nil, fmt.Errorf("Error while setting initial values: %v", err)
-		}
+	err := newObj.Update(initialValues)
+	if err != nil {
+		return nil, fmt.Errorf("Error while setting initial values: %v", err)
 	}
 
 	idf.Objects[searchKey] = append(idf.Objects[searchKey], newObj)
@@ -367,5 +379,3 @@ func (idf *IDF) String() string {
 	}
 	return builder.String()
 }
-
-//TODO 기본값?

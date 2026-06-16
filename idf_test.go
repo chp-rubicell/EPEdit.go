@@ -40,7 +40,26 @@ func TestUsage(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
 
-	surfaces, _ := idf.Objects["BUILDINGSURFACE:DETAILED"]
+	fmt.Println(idf)
+	fmt.Println("---")
+	v := idf.GetObjectByName("version", "24.2")
+	fmt.Println(v)
+	fmt.Println("---")
+	idf.RemoveObject(v)
+	fmt.Println(idf)
+	fmt.Println("---")
+
+	ss := idf.GetObjects("simulationcontrol")[0]
+	fmt.Println(ss)
+	fmt.Println("---")
+	ss.Update(Fields{
+		"Do System Sizing Calculation": "No",
+		"Do Plant Sizing Calculation":  "No",
+	})
+	fmt.Println(ss)
+	fmt.Println("---")
+
+	surfaces := idf.GetObjects("BUILDINGSURFACE:DETAILED")
 	for i, surf := range surfaces {
 		fmt.Printf("[%d] Surface Name: %s\n", i+1, surf.Values[0])
 	}
