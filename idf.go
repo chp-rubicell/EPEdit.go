@@ -3,11 +3,15 @@ package epedit
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
+	"strconv"
 	"strings"
 )
 
 // * Object definition
+
+type Fields map[string]any // for ease of use for field input
 
 type IDFObject struct {
 	Class  *ClassDef
@@ -88,8 +92,84 @@ TokenLoop:
 
 // * IDF manipulation API (Read)
 
+// get object by class name
+func (idf *IDF) GetObjects(className string) []*IDFObject {
+	return idf.Objects[strings.ToUpper(className)]
+}
+
+// get object by first field (likely name)
+func (idf *IDF) GetObjectByName(className string, objectName string) *IDFObject {
+	candidates := idf.GetObjects(className)
+	for _, obj := range candidates {
+		if len(obj.Values) < 1 {
+			continue
+		}
+		if strings.EqualFold(obj.Values[0], objectName) {
+			return obj
+		}
+	}
+	return nil
+}
+
+// get value of field as string (case-insensitive). "" if empty
+func (obj *IDFObject) GetString(fieldName string) (string, error) {
+	idx, err := obj.Class.FindFieldIndex(fieldName)
+	if err != nil {
+		return "", err
+	}
+	if idx >= len(obj.Values) {
+		return "", nil // empty value
+	}
+	return obj.Values[idx], nil
+}
+
+// get value of field as string (case-insensitive, ignores error). "" if empty
+func (obj *IDFObject) String(fieldName string) string {
+	val, _ := obj.GetString(fieldName)
+	return val
+}
+
+// get value of field as float (case-insensitive). math.NaN() if empty
+func (obj *IDFObject) GetFloat(fieldName string) (float64, error) {
+	valStr, err := obj.GetString(fieldName)
+	if err != nil {
+		return math.NaN(), err
+	}
+	val, err := strconv.ParseFloat(valStr, 64)
+	if err != nil {
+		return math.NaN(), err
+	}
+	return val, nil
+}
+
+// get value of field as float (case-insensitive, ignores error). math.NaN() if empty
+func (obj *IDFObject) Float(fieldName string) float64 {
+	val, _ := obj.GetFloat(fieldName)
+	return val
+}
+
+// get value of field as int (case-insensitive). -1 if empty
+func (obj *IDFObject) GetInt(fieldName string) (int, error) {
+	valStr, err := obj.GetString(fieldName)
+	if err != nil {
+		return -1, err
+	}
+	val, err := strconv.Atoi(valStr)
+	if err != nil {
+		return -1, err
+	}
+	return val, nil
+}
+
+// get value of field as int (case-insensitive, ignores error). -1 if empty
+func (obj *IDFObject) Int(fieldName string) int {
+	val, _ := obj.GetInt(fieldName)
+	return val
+}
+
 // * IDF manipulation API (Create, Update, Delete)
 
+// set value of field (case-insensitive)
 func (obj *IDFObject) Set(fieldName string, value any) error {
 	targetIndex, err := obj.Class.FindFieldIndex(fieldName)
 	if err != nil {
@@ -114,7 +194,7 @@ func (obj *IDFObject) Set(fieldName string, value any) error {
 }
 
 // add object to IDF
-func (idf *IDF) AddObject(className string, initialValues map[string]any) (*IDFObject, error) {
+func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, error) {
 	searchKey := strings.ToUpper(className)
 	classDef, exists := idf.IDD.Classes[searchKey]
 	if !exists {
@@ -144,6 +224,27 @@ func (idf *IDF) AddObject(className string, initialValues map[string]any) (*IDFO
 	idf.Objects[searchKey] = append(idf.Objects[searchKey], newObj)
 
 	return newObj, nil
+}
+
+// remove object from IDF
+func (idf *IDF) RemoveObject(target *IDFObject) error {
+	searchKey := strings.ToUpper(target.Class.Name)
+
+	list, exists := idf.Objects[searchKey]
+	if !exists {
+		return fmt.Errorf(`Failed to remove object: class "%s" does not exists`, target.Class.Name)
+	}
+
+	for i, obj := range list {
+		if obj == target {
+			copy(list[i:], list[i+1:]) // offset objects after target by -1
+			list[len(list)-1] = nil    // remove last pointer
+			idf.Objects[searchKey] = list[:len(list)-1]
+			return nil
+		}
+	}
+
+	return fmt.Errorf(`Failed to remove object: can't find object in class "%s" does not exists`, target.Class.Name)
 }
 
 // * Open and parse IDD file
