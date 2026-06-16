@@ -356,13 +356,13 @@ func extractPrefixSuffix(name string) (prefix string, suffix string) {
 func ParseIDDFile(filename string) (*IDD, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf(`Failed to open IDD file (%s): %w`, filename, err)
+		return nil, fmt.Errorf("Failed to open IDD file (%s): %w", filename, err)
 	}
 	defer file.Close()
 
 	idd, err := ParseIDD(file)
 	if err != nil {
-		return nil, fmt.Errorf(`Failed to parse IDD: %w`, err)
+		return nil, fmt.Errorf("Failed to parse IDD: %w", err)
 	}
 
 	return idd, nil

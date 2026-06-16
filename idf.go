@@ -1,6 +1,7 @@
 package epedit
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"math"
@@ -98,13 +99,13 @@ TokenLoop:
 func ParseIDFFile(filename string, idd *IDD) (*IDF, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf(`Failed to open IDF file (%s): %w`, filename, err)
+		return nil, fmt.Errorf("Failed to open IDF file (%s): %w", filename, err)
 	}
 	defer file.Close()
 
 	idf, err := ParseIDF(file, idd)
 	if err != nil {
-		return nil, fmt.Errorf(`Failed to parse IDF: %w`, err)
+		return nil, fmt.Errorf("Failed to parse IDF: %w", err)
 	}
 
 	return idf, nil
@@ -378,4 +379,28 @@ func (idf *IDF) String() string {
 		return ""
 	}
 	return builder.String()
+}
+
+// * Save to file
+
+func (idf *IDF) Save(filename string) error {
+	// create file
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("Failed to create file (%s): %w", filename, err)
+	}
+	defer file.Close()
+
+	bufferedWriter := bufio.NewWriter(file)
+
+	if _, err := idf.WriteTo(bufferedWriter); err != nil {
+		return fmt.Errorf("Failed to write IDF: %w", err)
+	}
+
+	// flush remaining data
+	if err := bufferedWriter.Flush(); err != nil {
+		return fmt.Errorf("Failed to write IDF: %w", err)
+	}
+
+	return nil
 }
