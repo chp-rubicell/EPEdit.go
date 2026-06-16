@@ -320,12 +320,49 @@ func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
 	return totalWritten, nil
 }
 
+// write IDF to io.Writer
+func (idf *IDF) WriteTo(w io.Writer) (int64, error) {
+	var totalWritten int64
+
+	// iterate through IDD's ordered class list
+	for _, classDef := range idf.IDD.OrderedClasses {
+		searchKey := strings.ToUpper(classDef.Name)
+		objects, exists := idf.Objects[searchKey]
+
+		// if class is not in IDF
+		if !exists || len(objects) == 0 {
+			continue
+		}
+
+		// write objects
+		for _, obj := range objects {
+			n, err := obj.WriteTo(w)
+			totalWritten += n
+			if err != nil {
+				return totalWritten, err
+			}
+		}
+	}
+
+	return totalWritten, nil
+}
+
 // * Convert to string
 
+// convert IDFObject to string (for debugging)
 func (obj *IDFObject) String() string {
 	var builder strings.Builder // for efficient string building
 	// use WriteTo to buffer (Builder) instead of file
 	if _, err := obj.WriteTo(&builder); err != nil {
+		return ""
+	}
+	return builder.String()
+}
+
+// convert IDF to string (for debugging)
+func (idf *IDF) String() string {
+	var builder strings.Builder
+	if _, err := idf.WriteTo(&builder); err != nil {
 		return ""
 	}
 	return builder.String()

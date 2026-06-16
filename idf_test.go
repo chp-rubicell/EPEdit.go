@@ -67,4 +67,6 @@ func TestUsage(t *testing.T) {
 		fmt.Printf("Conversion error: %v", err)
 	}
 	fmt.Println(string(formattedJSON))
+
+	fmt.Println(idf)
 }
