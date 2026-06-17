@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-// TODO: WriteTo 포매팅
 // TODO: 기본값 처리
 
 // * Object definition
@@ -282,22 +281,27 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 
 // format setting
 type formatConfig struct {
-	ClassIndent string // indent for class names
-	FieldIndent string // indent for fields
-	FieldSize   int    // minimum size for field values
+	ClassIndent    string // indent for class names
+	FieldIndent    string // indent for fields
+	FieldSize      int    // minimum size for field values
+	IncludeComment bool   // include comments
 }
 
 // generate formatConfig
-func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int) formatConfig {
+func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int, includeComment bool) formatConfig {
 	return formatConfig{
-		ClassIndent: strings.Repeat(" ", classIndentSize),
-		FieldIndent: strings.Repeat(" ", fieldIndentSize),
-		FieldSize:   fieldSize,
+		ClassIndent:    strings.Repeat(" ", classIndentSize),
+		FieldIndent:    strings.Repeat(" ", fieldIndentSize),
+		FieldSize:      fieldSize,
+		IncludeComment: includeComment,
 	}
 }
 
 // default value
-var defaultFormatConfig = NewFormatConfig(2, 4, 22)
+var defaultFormatConfig = NewFormatConfig(0, 4, 25, true)
+
+// minimal format
+var MinimalFormatConfig = NewFormatConfig(0, 1, 0, false)
 
 // write IDFObject to io.Writer with formatConfig
 func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
@@ -338,22 +342,28 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 	// 5. print until lastIdx
 	for i := 0; i <= lastIdx; i++ {
 		val := obj.Values[i]
-		fieldName := obj.Class.GetFieldName(i, true)
 
-		valWithPunct := val + ","
+		// field value string
+		fieldValString := val + ","
 		if i == lastIdx {
 			// finish with semicolon and an extra newline
-			valWithPunct = val + ";"
+			fieldValString = val + ";"
 		}
 
-		if cfg.FieldSize == 0 {
-			if err := write("%s%s !- %s\n", cfg.FieldIndent, valWithPunct, fieldName); err != nil {
-				return totalWritten, err
-			}
-		} else {
-			if err := write("%s%-*s !- %s\n", cfg.FieldIndent, cfg.FieldSize, valWithPunct, fieldName); err != nil {
-				return totalWritten, err
-			}
+		// add padding to field value string
+		if cfg.FieldSize > 0 {
+			fieldValString = fmt.Sprintf("%-*s", cfg.FieldSize, fieldValString)
+		}
+
+		// comment string
+		commentString := ""
+		if cfg.IncludeComment {
+			commentString = " !- " + obj.Class.GetFieldName(i, true)
+		}
+
+		// final line
+		if err := write(cfg.FieldIndent + fieldValString + commentString + "\n"); err != nil {
+			return totalWritten, err
 		}
 	}
 
@@ -381,7 +391,7 @@ func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 		}
 
 		// add group separator if changed
-		if currentGroup != classDef.Group {
+		if cfg.IncludeComment && currentGroup != classDef.Group {
 			currentGroup = classDef.Group
 			n, err := fmt.Fprintf(w, "\n! ***%s***\n", strings.ToUpper(currentGroup))
 			totalWritten += int64(n)

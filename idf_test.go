@@ -90,7 +90,7 @@ func TestIDFEdit(t *testing.T) {
 	fmt.Println(string(formattedJSON))
 
 	fmt.Println(idf)
-	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8)))
+	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8, true)))
 }
 
 func TestIDFParseAndSave(t *testing.T) {
