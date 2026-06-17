@@ -11,7 +11,8 @@ import (
 	"time"
 )
 
-// TODO: 기본값 처리
+// TODO: create empty IDF
+// TODO: default values
 
 // * Object definition
 
@@ -308,14 +309,14 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 	var totalWritten int64
 
 	// closure helper function
-	write := func(format string, args ...any) error {
-		n, err := fmt.Fprintf(w, format, args...)
+	writeStr := func(s string) error {
+		n, err := io.WriteString(w, s)
 		totalWritten += int64(n)
 		return err
 	}
 
 	// 1. print class name
-	if err := write("%s%s", cfg.ClassIndent, obj.Class.Name); err != nil {
+	if err := writeStr(cfg.ClassIndent + obj.Class.Name); err != nil {
 		return totalWritten, err
 	}
 
@@ -330,12 +331,12 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 
 	// 3. if all fields are empty, print ; and return
 	if lastIdx == -1 {
-		err := write(";\n\n")
+		err := writeStr(";\n\n")
 		return totalWritten, err
 	}
 
 	// 4. if not, print , after class name
-	if err := write(",\n"); err != nil {
+	if err := writeStr(",\n"); err != nil {
 		return totalWritten, err
 	}
 
@@ -362,7 +363,7 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 		}
 
 		// final line
-		if err := write(cfg.FieldIndent + fieldValString + commentString + "\n"); err != nil {
+		if err := writeStr(cfg.FieldIndent + fieldValString + commentString + "\n"); err != nil {
 			return totalWritten, err
 		}
 	}
