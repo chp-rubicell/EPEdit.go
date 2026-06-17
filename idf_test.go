@@ -3,7 +3,9 @@ package epedit
 import (
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"testing"
+	"time"
 )
 
 func TestParseIDF(t *testing.T) {
@@ -108,4 +110,34 @@ func TestIDFParseAndSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error occurred while saving IDF: %v\n", err)
 	}
+}
+
+func TestPerformance(t *testing.T) {
+	var m runtime.MemStats
+
+	runtime.ReadMemStats(&m)
+	fmt.Printf("Current memory: %v MB\n", m.Alloc/1024/1024)
+
+	startTime := time.Now()
+
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+	}
+
+	durationIDD := time.Since(startTime)
+
+	startTime = time.Now()
+
+	_, err = ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
+	}
+
+	durationIDF := time.Since(startTime)
+
+	runtime.ReadMemStats(&m)
+
+	fmt.Printf("Current memory: %v MB\n", m.Alloc/1024/1024)
+	fmt.Printf("Duration: %v %v\n", durationIDD, durationIDF)
 }
