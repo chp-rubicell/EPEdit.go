@@ -1,5 +1,7 @@
 ! Generated using EPEdit.go
-! Saved at: 2026-06-17 15:38:50
+! Saved at: 2026-06-17 15:50:28
+
+! ***SIMULATION PARAMETERS***
 
   Version,
     24.2;                  !- Version Identifier
@@ -48,6 +50,8 @@
   ConvergenceLimits,
     2,                     !- Minimum System Timestep
     25;                    !- Maximum HVAC Iterations
+
+! ***LOCATION AND CLIMATE***
 
   Site:Location,
     USA IL-CHICAGO-OHARE,  !- Name
@@ -210,6 +214,8 @@
     ,                      !- Temperature Schedule Name
     9.69,                  !- Annual Average Outdoor Air Temperature
     28.10;                 !- Maximum Difference In Monthly Average Outdoor Air Temperatures
+
+! ***SCHEDULES***
 
   ScheduleTypeLimits,
     Any Number;            !- Name
@@ -783,6 +789,8 @@
     Until: 24:00,          !- Field 3
     60.0;                  !- Field 4
 
+! ***SURFACE CONSTRUCTION ELEMENTS***
+
   Material,
     Steel Frame NonRes Wall Insulation, !- Name
     MediumRough,           !- Roughness
@@ -1000,6 +1008,8 @@
   Construction,
     InteriorFurnishings,   !- Name
     Std Wood 6inch;        !- Outside Layer
+
+! ***THERMAL ZONES AND SURFACES***
 
   GlobalGeometryRules,
     UpperLeftCorner,       !- Starting Vertex Position
@@ -4858,6 +4868,8 @@
     ,                      !- Space or SpaceList Name
     262.5072;              !- Surface Area
 
+! ***INTERNAL GAINS***
+
   People,
     Core_bottom People,    !- Name
     Core_bottom,           !- Zone or ZoneList or Space or SpaceList Name
@@ -5621,6 +5633,8 @@
     0.0000,                !- Fraction Lost
     Elevators;             !- End-Use Subcategory
 
+! ***ZONE AIRFLOW***
+
   ZoneInfiltration:DesignFlowRate,
     FirstFloor_Plenum_Infiltration, !- Name
     FirstFloor_Plenum,     !- Zone or ZoneList or Space or SpaceList Name
@@ -5831,12 +5845,16 @@
     0.0000,                !- Velocity Term Coefficient
     0.0000;                !- Velocity Squared Term Coefficient
 
+! ***EXTERIOR EQUIPMENT***
+
   Exterior:Lights,
     Exterior Facade Lighting, !- Name
     ALWAYS_ON,             !- Schedule Name
     14804,                 !- Design Level
     AstronomicalClock,     !- Control Option
     Exterior Facade Lighting; !- End-Use Subcategory
+
+! ***HVAC DESIGN OBJECTS***
 
   DesignSpecification:OutdoorAir,
     SZ DSOA Core_bottom,   !- Name
@@ -6476,6 +6494,8 @@
     60,                    !- Design Loop Exit Temperature
     5.0;                   !- Loop Design Temperature Difference
 
+! ***ZONE HVAC CONTROLS AND THERMOSTATS***
+
   ZoneControl:Thermostat,
     Core_bottom Thermostat, !- Name
     Core_bottom,           !- Zone or ZoneList Name
@@ -6655,6 +6675,8 @@
     Perimeter_top_ZN_4 DualSPSched, !- Name
     HTGSETP_SCH,           !- Heating Setpoint Temperature Schedule Name
     CLGSETP_SCH;           !- Cooling Setpoint Temperature Schedule Name
+
+! ***ZONE HVAC AIR LOOP TERMINAL UNITS***
 
   AirTerminal:SingleDuct:VAV:Reheat,
     Core_bottom VAV Box Component, !- Name
@@ -7046,6 +7068,8 @@
     AirTerminal:SingleDuct:VAV:Reheat, !- Air Terminal Object Type
     Perimeter_top_ZN_4 VAV Box Component; !- Air Terminal Name
 
+! ***ZONE HVAC EQUIPMENT CONNECTIONS***
+
   ZoneHVAC:EquipmentList,
     Core_bottom Equipment, !- Name
     SequentialLoad,        !- Load Distribution Scheme
@@ -7286,6 +7310,8 @@
     Perimeter_top_ZN_4 Air Node, !- Zone Air Node Name
     Perimeter_top_ZN_4 Return Air Node Name; !- Zone Return Air Node or NodeList Name
 
+! ***FANS***
+
   Fan:SystemModel,
     VAV_1_Fan,             !- Name
     HVACOperationSchd,     !- Availability Schedule Name
@@ -7348,6 +7374,8 @@
     VAV_3_HeatC-VAV_3_FanNode, !- Air Inlet Node Name
     VAV_3 Supply Equipment Outlet Node, !- Air Outlet Node Name
     Fan Energy;            !- End-Use Subcategory
+
+! ***COILS***
 
   Coil:Cooling:DX:TwoSpeed,
     VAV_1_CoolC DXCoil,    !- Name
@@ -7604,6 +7632,8 @@
     Coil:Cooling:DX:TwoSpeed, !- Cooling Coil Object Type
     VAV_3_CoolC DXCoil;    !- Cooling Coil Name
 
+! ***CONTROLLERS***
+
   Controller:OutdoorAir,
     VAV_1_OA_Controller,   !- Name
     VAV_1_OARelief Node,   !- Relief Air Outlet Node Name
@@ -7675,6 +7705,8 @@
     VAV_3_OA_Controllers,  !- Name
     Controller:OutdoorAir, !- Controller 1 Object Type
     VAV_3_OA_Controller;   !- Controller 1 Name
+
+! ***AIR DISTRIBUTION***
 
   AirLoopHVAC,
     VAV_1,                 !- Name
@@ -7882,6 +7914,8 @@
     VAV_3 Return Plenum,   !- Component 1 Name
     AirLoopHVAC:ZoneMixer, !- Component 2 Object Type
     VAV_3 Return Air Mixer; !- Component 2 Name
+
+! ***NODE-BRANCH MANAGEMENT***
 
   Branch,
     VAV_1 Air Loop Main Branch, !- Name
@@ -8217,6 +8251,8 @@
     SWHSys1 Supply Mixer-SWHSys1 Supply Outlet Pipe, !- Inlet Node Name
     SWHSys1 Supply Outlet Node; !- Outlet Node Name
 
+! ***PUMPS***
+
   Pump:ConstantSpeed,
     SWHSys1 Pump,          !- Name
     SWHSys1 Supply Inlet Node, !- Inlet Node Name
@@ -8227,6 +8263,8 @@
     0.85,                  !- Motor Efficiency
     0.0,                   !- Fraction of Motor Inefficiencies to Fluid Stream
     Intermittent;          !- Pump Control Type
+
+! ***WATER HEATERS AND THERMAL STORAGE***
 
   WaterHeater:Mixed,
     SWHSys1 Water Heater,  !- Name
@@ -8269,6 +8307,8 @@
     AUTOSIZE,              !- Source Side Design Flow Rate
     1.5;                   !- Indirect Water Heating Recovery Time
 
+! ***PLANT-CONDENSER LOOPS***
+
   PlantLoop,
     SWHSys1,               !- Name
     Water,                 !- Fluid Type
@@ -8290,6 +8330,8 @@
     SWHSys1 Demand Connectors, !- Demand Side Connector List Name
     Optimal;               !- Load Distribution Scheme
 
+! ***PLANT-CONDENSER CONTROL***
+
   PlantEquipmentList,
     SWHSys1 Equipment List, !- Name
     WaterHeater:Mixed,     !- Equipment 1 Object Type
@@ -8306,6 +8348,8 @@
     PlantEquipmentOperation:HeatingLoad, !- Control Scheme 1 Object Type
     SWHSys1 Operation Scheme, !- Control Scheme 1 Name
     ALWAYS_ON;             !- Control Scheme 1 Schedule Name
+
+! ***SYSTEM AVAILABILITY MANAGERS***
 
   AvailabilityManager:NightCycle,
     VAV_1 Availability Manager, !- Name
@@ -8348,6 +8392,8 @@
     VAV_3 Availability Manager List, !- Name
     AvailabilityManager:NightCycle, !- Availability Manager 1 Object Type
     VAV_3 Availability Manager; !- Availability Manager 1 Name
+
+! ***SETPOINT MANAGERS***
 
   SetpointManager:Scheduled,
     VAV_1 SAT setpoint,    !- Name
@@ -8445,6 +8491,8 @@
     VAV_3 Supply Equipment Outlet Node, !- Fan Outlet Node Name
     VAV_3_OA-VAV_3_CoolCNode; !- Setpoint Node or NodeList Name
 
+! ***WATER SYSTEMS***
+
   WaterUse:Equipment,
     Core_bottom Water Equipment, !- Name
     ,                      !- End-Use Subcategory
@@ -8519,6 +8567,8 @@
     ,                      !- Drain Water Heat Exchanger Destination
     ,                      !- Drain Water Heat Exchanger U-Factor Times Area
     Core_top Water Equipment; !- Water Use Equipment 1 Name
+
+! ***PERFORMANCE CURVES***
 
   Curve:Quadratic,
     Measured_CoolCStandard10Ton_CapFF, !- Name
@@ -8609,6 +8659,8 @@
     29.4,                  !- Maximum Value of x
     10.0,                  !- Minimum Value of y
     50.3;                  !- Maximum Value of y
+
+! ***ECONOMICS***
 
   UtilityCost:Tariff,
     PSI_LLF_LowLoadFactorService, !- Name
@@ -8887,6 +8939,8 @@
     8.18,                  !- October Value
     7.83,                  !- November Value
     7.63;                  !- December Value
+
+! ***OUTPUT REPORTING***
 
   Output:VariableDictionary,
     IDF,                   !- Key Field

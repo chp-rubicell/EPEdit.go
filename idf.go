@@ -368,6 +368,7 @@ func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
 // write IDF to io.Writer with formatConfig
 func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 	var totalWritten int64
+	var currentGroup string
 
 	// iterate through IDD's ordered class list
 	for _, classDef := range idf.IDD.OrderedClasses {
@@ -377,6 +378,16 @@ func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 		// if class is not in IDF
 		if !exists || len(objects) == 0 {
 			continue
+		}
+
+		// add group separator if changed
+		if currentGroup != classDef.Group {
+			currentGroup = classDef.Group
+			n, err := fmt.Fprintf(w, "\n! ***%s***\n", strings.ToUpper(currentGroup))
+			totalWritten += int64(n)
+			if err != nil {
+				return totalWritten, err
+			}
 		}
 
 		// write objects
