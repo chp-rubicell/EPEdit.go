@@ -94,7 +94,8 @@ func TestIDFEdit(t *testing.T) {
 }
 
 func TestIDFParseAndSave(t *testing.T) {
-	filepath := "testdata/test.idf"
+	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago.idf"
+	// filepath := "testdata/TestUnits.idf"
 
 	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
 	if err != nil {

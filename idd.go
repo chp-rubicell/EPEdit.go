@@ -20,16 +20,18 @@ type FieldDef struct {
 	Autocalculatable bool
 	Type             string   // alpha, real, integer, choice, etc.
 	Choices          []string // possible values for "\type choice"
+	CommentSuffix    string   // for adding units at the end of the comment (ex. Wavelength {micron})
 	// TODO: add more later
 }
 
 // store extensible field names as Prefix + # + Suffix
 // ex. "Vertex 1 X-coordinate" -> "Vertex ", " X-coordinate"
 type ExtPattern struct {
-	Prefix       string
-	Suffix       string
-	SearchPrefix string // for searching (lowercase)
-	SearchSuffix string // for searching (lowercase)
+	Prefix        string
+	Suffix        string
+	SearchPrefix  string // for searching (lowercase)
+	SearchSuffix  string // for searching (lowercase)
+	CommentSuffix string
 }
 
 // IDD extensible field properties (used in ClassDef)
@@ -244,7 +246,13 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 			// TODO: add extensible field name patterns
 		}
 	} else if after, found := strings.CutPrefix(val, `\units`); found {
-		field.Units = strings.TrimSpace(after)
+		units := strings.TrimSpace(after)
+		field.Units = units
+		if units != "" {
+			field.CommentSuffix = " {" + units + "}"
+		} else {
+			field.CommentSuffix = ""
+		}
 	} else if after, found := strings.CutPrefix(val, `\default`); found {
 		field.Default = strings.TrimSpace(after)
 	} else if val == `\autosizable` {
@@ -282,12 +290,14 @@ func (class *ClassDef) buildIndices() {
 
 		for i := 0; i < class.Extensible.Size; i++ {
 			if limit+i < len(class.Fields) {
-				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
+				baseField := class.Fields[limit+i]
+				prefix, suffix := extractPrefixSuffix(baseField.Name)
 				class.Extensible.Patterns[i] = ExtPattern{
-					Prefix:       prefix,
-					Suffix:       suffix,
-					SearchPrefix: strings.ToLower(prefix),
-					SearchSuffix: strings.ToLower(suffix),
+					Prefix:        prefix,
+					Suffix:        suffix,
+					SearchPrefix:  strings.ToLower(prefix),
+					SearchSuffix:  strings.ToLower(suffix),
+					CommentSuffix: baseField.CommentSuffix,
 				}
 			}
 		}
@@ -408,8 +418,8 @@ func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 			return ""
 		}
 		field := class.Fields[index]
-		if addUnits && field.Units != "" {
-			return field.Name + " {" + field.Units + "}"
+		if addUnits {
+			return field.Name + field.CommentSuffix
 		}
 		return field.Name
 	}
@@ -422,8 +432,8 @@ func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 	}
 	pat := ext.Patterns[offset]
 	fieldName := fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
-	if units := class.Fields[ext.BeginIndex+offset].Units; addUnits && units != "" {
-		return fieldName + " {" + units + "}"
+	if addUnits {
+		return fieldName + class.Fields[ext.BeginIndex+offset].CommentSuffix
 	}
 	return fieldName
 }
