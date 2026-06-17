@@ -129,10 +129,12 @@ func TestPerformance(t *testing.T) {
 
 	startTime = time.Now()
 
-	_, err = ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
+	idf, err := ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
+
+	idf.String()
 
 	durationIDF := time.Since(startTime)
 
