@@ -20,18 +20,17 @@ type FieldDef struct {
 	Autocalculatable bool
 	Type             string   // alpha, real, integer, choice, etc.
 	Choices          []string // possible values for "\type choice"
-	CommentSuffix    string   // for adding units at the end of the comment (ex. Wavelength {micron})
+	CommentString    string   // comment string for export (ex. Wavelength {micron})
 	// TODO: add more later
 }
 
 // store extensible field names as Prefix + # + Suffix
 // ex. "Vertex 1 X-coordinate" -> "Vertex ", " X-coordinate"
 type ExtPattern struct {
-	Prefix        string
-	Suffix        string
-	SearchPrefix  string // for searching (lowercase)
-	SearchSuffix  string // for searching (lowercase)
-	CommentSuffix string
+	Prefix       string
+	Suffix       string
+	SearchPrefix string // for searching (lowercase)
+	SearchSuffix string // for searching (lowercase)
 }
 
 // IDD extensible field properties (used in ClassDef)
@@ -134,11 +133,19 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 				idd.Classes[strings.ToUpper(lastText)] = currentClass
 				// add to slice (for preserving order)
 				idd.OrderedClasses = append(idd.OrderedClasses, currentClass)
+				// update commentString
+				if currentField != nil {
+					currentField.CommentString = generateFieldCommentString(currentField.Name, currentField.Units)
+				}
 				currentField = nil
 				lastText = ""
 				state = stateInClass
 
 			case stateInClass:
+				// update commentString
+				if currentField != nil {
+					currentField.CommentString = generateFieldCommentString(currentField.Name, currentField.Units)
+				}
 				// if has extensible, skip after first set of extensible fields
 				limit := -1
 				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
@@ -159,6 +166,10 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 		} else if tok.Type == TokenSemicolon {
 			// 3. semicolon (;) token
 			if state == stateInClass {
+				// update commentString
+				if currentField != nil {
+					currentField.CommentString = generateFieldCommentString(currentField.Name, currentField.Units)
+				}
 				// if has extensible, skip after first set of extensible fields
 				limit := -1
 				if currentClass.Extensible != nil && currentClass.Extensible.BeginIndex >= 0 {
@@ -246,13 +257,7 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 			// TODO: add extensible field name patterns
 		}
 	} else if after, found := strings.CutPrefix(val, `\units`); found {
-		units := strings.TrimSpace(after)
-		field.Units = units
-		if units != "" {
-			field.CommentSuffix = " {" + units + "}"
-		} else {
-			field.CommentSuffix = ""
-		}
+		field.Units = strings.TrimSpace(after)
 	} else if after, found := strings.CutPrefix(val, `\default`); found {
 		field.Default = strings.TrimSpace(after)
 	} else if val == `\autosizable` {
@@ -265,6 +270,13 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
 	// TODO: \default, \key, etc.
+}
+
+func generateFieldCommentString(fieldName string, units string) string {
+	if units != "" {
+		return fieldName + " {" + units + "}"
+	}
+	return fieldName
 }
 
 // * Helper functions for building IDD
@@ -290,14 +302,12 @@ func (class *ClassDef) buildIndices() {
 
 		for i := 0; i < class.Extensible.Size; i++ {
 			if limit+i < len(class.Fields) {
-				baseField := class.Fields[limit+i]
-				prefix, suffix := extractPrefixSuffix(baseField.Name)
+				prefix, suffix := extractPrefixSuffix(class.Fields[limit+i].Name)
 				class.Extensible.Patterns[i] = ExtPattern{
-					Prefix:        prefix,
-					Suffix:        suffix,
-					SearchPrefix:  strings.ToLower(prefix),
-					SearchSuffix:  strings.ToLower(suffix),
-					CommentSuffix: baseField.CommentSuffix,
+					Prefix:       prefix,
+					Suffix:       suffix,
+					SearchPrefix: strings.ToLower(prefix),
+					SearchSuffix: strings.ToLower(suffix),
 				}
 			}
 		}
@@ -419,7 +429,7 @@ func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 		}
 		field := class.Fields[index]
 		if addUnits {
-			return field.Name + field.CommentSuffix
+			return field.CommentString
 		}
 		return field.Name
 	}
@@ -433,7 +443,8 @@ func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 	pat := ext.Patterns[offset]
 	fieldName := fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
 	if addUnits {
-		return fieldName + class.Fields[ext.BeginIndex+offset].CommentSuffix
+		units := class.Fields[ext.BeginIndex+offset].Units
+		return generateFieldCommentString(fieldName, units)
 	}
 	return fieldName
 }
