@@ -114,33 +114,33 @@ func TestIDFParseAndSave(t *testing.T) {
 }
 
 func TestPerformance(t *testing.T) {
+	const repeat = 100
+
 	var m runtime.MemStats
+	memory := 0.0
+	durationIDD := time.Duration(0)
+	durationIDF := time.Duration(0)
 
-	runtime.ReadMemStats(&m)
-	fmt.Printf("Current memory: %v MB\n", m.Alloc/1024/1024)
+	for _ = range repeat {
+		startTime := time.Now()
+		idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
+		if err != nil {
+			t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+		}
+		durationIDD += time.Since(startTime)
 
-	startTime := time.Now()
+		startTime = time.Now()
+		idf, err := ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
+		if err != nil {
+			t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
+		}
+		_ = idf.String()
+		durationIDF += time.Since(startTime)
 
-	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
-	if err != nil {
-		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+		runtime.ReadMemStats(&m)
+		memory += float64(m.Alloc) / 1024.0 / 1024.0
 	}
 
-	durationIDD := time.Since(startTime)
-
-	startTime = time.Now()
-
-	idf, err := ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
-	if err != nil {
-		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
-	}
-
-	_ = idf.String()
-
-	durationIDF := time.Since(startTime)
-
-	runtime.ReadMemStats(&m)
-
-	fmt.Printf("Current memory: %v MB\n", m.Alloc/1024/1024)
-	fmt.Printf("Duration: %v %v\n", durationIDD, durationIDF)
+	fmt.Printf("Memory: %.2f MB\n", memory/repeat)
+	fmt.Printf("Duration: %v %v\n", durationIDD/repeat, durationIDF/repeat)
 }
