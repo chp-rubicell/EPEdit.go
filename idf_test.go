@@ -88,6 +88,7 @@ func TestIDFEdit(t *testing.T) {
 	fmt.Println(string(formattedJSON))
 
 	fmt.Println(idf)
+	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8)))
 }
 
 func TestIDFParseAndSave(t *testing.T) {

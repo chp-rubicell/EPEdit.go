@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // TODO: WriteTo 포매팅
@@ -279,8 +280,27 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 
 // * Export
 
-// write IDFObject to io.Writer
-func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
+// format setting
+type formatConfig struct {
+	ClassIndent string // indent for class names
+	FieldIndent string // indent for fields
+	FieldSize   int    // minimum size for field values
+}
+
+// generate formatConfig
+func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int) formatConfig {
+	return formatConfig{
+		ClassIndent: strings.Repeat(" ", classIndentSize),
+		FieldIndent: strings.Repeat(" ", fieldIndentSize),
+		FieldSize:   fieldSize,
+	}
+}
+
+// default value
+var defaultFormatConfig = NewFormatConfig(2, 4, 22)
+
+// write IDFObject to io.Writer with formatConfig
+func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 	var totalWritten int64
 
 	// closure helper function
@@ -291,7 +311,7 @@ func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
 	}
 
 	// 1. print class name
-	if err := write("  %s", obj.Class.Name); err != nil {
+	if err := write("%s%s", cfg.ClassIndent, obj.Class.Name); err != nil {
 		return totalWritten, err
 	}
 
@@ -320,21 +340,33 @@ func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
 		val := obj.Values[i]
 		fieldName := obj.Class.GetFieldName(i)
 
-		format := "    %s, !- %s\n"
+		valWithPunct := val + ","
 		if i == lastIdx {
 			// finish with semicolon and an extra newline
-			format = "    %s; !- %s\n\n"
+			valWithPunct = val + ";"
 		}
-		if err := write(format, val, fieldName); err != nil {
-			return totalWritten, err
+
+		if cfg.FieldSize == 0 {
+			if err := write("%s%s !- %s\n", cfg.FieldIndent, valWithPunct, fieldName); err != nil {
+				return totalWritten, err
+			}
+		} else {
+			if err := write("%s%-*s !- %s\n", cfg.FieldIndent, cfg.FieldSize, valWithPunct, fieldName); err != nil {
+				return totalWritten, err
+			}
 		}
 	}
 
 	return totalWritten, nil
 }
 
-// write IDF to io.Writer
-func (idf *IDF) WriteTo(w io.Writer) (int64, error) {
+// write IDFObject to io.Writer
+func (obj *IDFObject) WriteTo(w io.Writer) (int64, error) {
+	return obj.writeWithFormat(w, defaultFormatConfig)
+}
+
+// write IDF to io.Writer with formatConfig
+func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 	var totalWritten int64
 
 	// iterate through IDD's ordered class list
@@ -349,8 +381,15 @@ func (idf *IDF) WriteTo(w io.Writer) (int64, error) {
 
 		// write objects
 		for _, obj := range objects {
-			n, err := obj.WriteTo(w)
-			totalWritten += n
+			// add newline
+			n1, err := w.Write([]byte("\n"))
+			totalWritten += int64(n1)
+			if err != nil {
+				return totalWritten, err
+			}
+			// write IDFObject
+			n2, err := obj.writeWithFormat(w, cfg)
+			totalWritten += n2
 			if err != nil {
 				return totalWritten, err
 			}
@@ -360,30 +399,51 @@ func (idf *IDF) WriteTo(w io.Writer) (int64, error) {
 	return totalWritten, nil
 }
 
+// write IDF to io.Writer
+func (idf *IDF) WriteTo(w io.Writer) (int64, error) {
+	return idf.writeWithFormat(w, defaultFormatConfig)
+}
+
 // * Convert to string
 
 // convert IDFObject to string (for debugging)
-func (obj *IDFObject) String() string {
+func (obj *IDFObject) Format(cfg formatConfig) string {
 	var builder strings.Builder // for efficient string building
 	// use WriteTo to buffer (Builder) instead of file
-	if _, err := obj.WriteTo(&builder); err != nil {
+	if _, err := obj.writeWithFormat(&builder, cfg); err != nil {
 		return ""
 	}
 	return builder.String()
 }
 
+// convert IDFObject to string with default format config
+func (obj *IDFObject) String() string {
+	return obj.Format(defaultFormatConfig)
+}
+
 // convert IDF to string (for debugging)
-func (idf *IDF) String() string {
+func (idf *IDF) Format(cfg formatConfig) string {
 	var builder strings.Builder
-	if _, err := idf.WriteTo(&builder); err != nil {
+	if _, err := idf.writeWithFormat(&builder, cfg); err != nil {
 		return ""
 	}
-	return builder.String()
+	return strings.TrimSpace(builder.String())
+}
+
+// convert IDFObject to string with default format config
+func (idf *IDF) String() string {
+	return idf.Format(defaultFormatConfig)
 }
 
 // * Save to file
 
-func (idf *IDF) Save(filename string) error {
+func (idf *IDF) Save(filename string, cfg ...formatConfig) error {
+	// format config
+	activeCfg := defaultFormatConfig
+	if len(cfg) > 0 {
+		activeCfg = cfg[0]
+	}
+
 	// create file
 	file, err := os.Create(filename)
 	if err != nil {
@@ -391,12 +451,19 @@ func (idf *IDF) Save(filename string) error {
 	}
 	defer file.Close()
 
+	// create buffer writer
 	bufferedWriter := bufio.NewWriter(file)
 
-	if _, err := idf.WriteTo(bufferedWriter); err != nil {
-		return fmt.Errorf("Failed to write IDF: %w", err)
+	// add header
+	header := fmt.Sprintf("! Generated using EPEdit.go\n! Saved at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	if _, err := bufferedWriter.WriteString(header); err != nil {
+		return fmt.Errorf("Failed to write header: %w", err)
 	}
 
+	// write idf to buffer
+	if _, err := idf.writeWithFormat(bufferedWriter, activeCfg); err != nil {
+		return fmt.Errorf("Failed to write IDF: %w", err)
+	}
 	// flush remaining data
 	if err := bufferedWriter.Flush(); err != nil {
 		return fmt.Errorf("Failed to write IDF: %w", err)
