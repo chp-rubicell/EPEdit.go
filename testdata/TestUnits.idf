@@ -1,0 +1,21 @@
+!-Generator IDFEditor 1.54
+!-Option SortedOrder
+
+!-NOTE: All comments with '!-' are ignored by the IDFEditor and are generated automatically.
+!-      Use '!' comments if they need to be retained when using the IDFEditor.
+
+
+!-   ===========  ALL OBJECTS IN CLASS: SITE:SPECTRUMDATA ===========
+
+Site:SpectrumData,
+    test,                    !- Name
+    Visible,                 !- Spectrum Data Type
+    11,                      !- Wavelength {micron}
+    11,                      !- Spectrum
+    22,                      !- Wavelength {micron}
+    22,                      !- Spectrum
+    33,                      !- Wavelength {micron}
+    33,                      !- Spectrum
+    44,                      !- N7
+    44;                      !- N8
+

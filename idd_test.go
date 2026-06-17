@@ -35,7 +35,7 @@ func TestIDDAPI(t *testing.T) {
 	}
 	classDef := idd.Classes[strings.ToUpper("BuildingSurface:Detailed")]
 	for _, i := range []int{0, 4, 20} {
-		fieldName := classDef.GetFieldName(i)
+		fieldName := classDef.GetFieldName(i, false)
 		fieldIdx, _ := classDef.FindFieldIndex(fieldName)
 		fmt.Printf("%d -> %s -> %d\n", i, fieldName, fieldIdx)
 	}

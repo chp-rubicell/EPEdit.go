@@ -338,7 +338,7 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 	// 5. print until lastIdx
 	for i := 0; i <= lastIdx; i++ {
 		val := obj.Values[i]
-		fieldName := obj.Class.GetFieldName(i)
+		fieldName := obj.Class.GetFieldName(i, true)
 
 		valWithPunct := val + ","
 		if i == lastIdx {

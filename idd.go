@@ -399,7 +399,7 @@ func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
 }
 
 // get field name from index
-func (class *ClassDef) GetFieldName(index int) string {
+func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 	ext := class.Extensible
 
 	// base fields
@@ -407,7 +407,11 @@ func (class *ClassDef) GetFieldName(index int) string {
 		if index >= len(class.Fields) {
 			return ""
 		}
-		return class.Fields[index].Name
+		field := class.Fields[index]
+		if addUnits && field.Units != "" {
+			return field.Name + " {" + field.Units + "}"
+		}
+		return field.Name
 	}
 
 	// extensible fields
@@ -417,5 +421,9 @@ func (class *ClassDef) GetFieldName(index int) string {
 		return ""
 	}
 	pat := ext.Patterns[offset]
-	return fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
+	fieldName := fmt.Sprintf("%s%d%s", pat.Prefix, groupNum, pat.Suffix)
+	if units := class.Fields[ext.BeginIndex+offset].Units; addUnits && units != "" {
+		return fieldName + " {" + units + "}"
+	}
+	return fieldName
 }

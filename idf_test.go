@@ -94,7 +94,7 @@ func TestIDFEdit(t *testing.T) {
 }
 
 func TestIDFParseAndSave(t *testing.T) {
-	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago.idf"
+	filepath := "testdata/test.idf"
 
 	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
 	if err != nil {
@@ -134,7 +134,7 @@ func TestPerformance(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
 
-	idf.String()
+	_ = idf.String()
 
 	durationIDF := time.Since(startTime)
 
