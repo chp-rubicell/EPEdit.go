@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-// TODO: create empty IDF
-// TODO: default values
-
 // * Object definition
 
 type Fields map[string]any // for ease of use for field input
@@ -250,7 +247,6 @@ func (idf *IDF) AddObject(className string, initialValues Fields, defaultValues 
 	} else if classDef.Extensible != nil && classDef.Extensible.BeginIndex > -1 {
 		minFields = classDef.Extensible.BeginIndex + classDef.Extensible.Size
 	}
-	// TODO: preallocate based on maximum index in initialValues?
 
 	// create new IDFObject
 	newObj := &IDFObject{

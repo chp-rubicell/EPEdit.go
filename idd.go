@@ -15,7 +15,7 @@ type FieldDef struct {
 	Name             string
 	Required         bool
 	Units            string
-	Default          string // TODO: deal with type conversion later...
+	Default          string
 	Autosizable      bool
 	Autocalculatable bool
 	Type             string   // alpha, real, integer, choice, etc.
@@ -242,7 +242,6 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		// current field is the starting field of extensibles
 		if class.Extensible != nil {
 			class.Extensible.BeginIndex = len(class.Fields) - 1
-			// TODO: add extensible field name patterns
 		}
 	} else if after, found := strings.CutPrefix(val, `\units`); found {
 		field.Units = strings.TrimSpace(after)
@@ -262,7 +261,7 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 	} else if after, found := strings.CutPrefix(val, `\key`); found {
 		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
-	// TODO: \default, \key, etc.
+	// TODO: add more later
 }
 
 // * Helper functions for building IDD
