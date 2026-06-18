@@ -113,6 +113,18 @@ func TestIDFParseAndSave(t *testing.T) {
 	}
 }
 
+func TestDefaultValue(t *testing.T) {
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+	}
+
+	idf := NewIDF(idd)
+	idf.AddObject("OutputControl:Files", nil)
+
+	fmt.Println(idf)
+}
+
 func TestIDFFormat(t *testing.T) {
 	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago_Test.idf"
 

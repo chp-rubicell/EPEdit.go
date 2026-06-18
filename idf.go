@@ -246,11 +246,18 @@ func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, e
 	}
 	// TODO: preallocate based on maximum index in initialValues?
 
+	// create new IDFObject
 	newObj := &IDFObject{
 		Class:  classDef,
 		Values: make([]string, 0, minFields),
 	}
 
+	// add default values
+	for _, idx := range classDef.FieldIdxWithDefault {
+		newObj.SetByIndex(idx, classDef.Fields[idx].Default)
+	}
+
+	// updated fields using provided initial values
 	err := newObj.Update(initialValues)
 	if err != nil {
 		return nil, fmt.Errorf("Error while setting initial values: %w", err)

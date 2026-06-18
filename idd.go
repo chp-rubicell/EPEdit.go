@@ -41,12 +41,13 @@ type ExtensibleDef struct {
 
 // IDD class definition (ex. Building, Zone)
 type ClassDef struct {
-	Name              string     // original name with capitalization
-	Group             string     // \group
-	Fields            []FieldDef // array of FieldDefs
-	MinFields         int
-	BaseFieldIndexMap map[string]int // for fast indexing of fields (lowercase)
-	Extensible        *ExtensibleDef // nil if empty
+	Name                string     // original name with capitalization
+	Group               string     // \group
+	Fields              []FieldDef // array of FieldDefs
+	MinFields           int
+	BaseFieldIndexMap   map[string]int // for fast indexing of fields (lowercase)
+	Extensible          *ExtensibleDef // nil if empty
+	FieldIdxWithDefault []int          // field indices with default value
 }
 
 // IDD object that contains all of the definitions
@@ -246,7 +247,12 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 	} else if after, found := strings.CutPrefix(val, `\units`); found {
 		field.Units = strings.TrimSpace(after)
 	} else if after, found := strings.CutPrefix(val, `\default`); found {
-		field.Default = strings.TrimSpace(after)
+		defaultValue := strings.TrimSpace(after)
+		field.Default = defaultValue
+		// if field has default value, add index to cache
+		if defaultValue != "" {
+			class.FieldIdxWithDefault = append(class.FieldIdxWithDefault, len(class.Fields)-1)
+		}
 	} else if val == `\autosizable` {
 		field.Autosizable = true
 	} else if val == `\autocalculatable` {
