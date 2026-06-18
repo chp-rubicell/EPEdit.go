@@ -120,17 +120,17 @@ func (idf *IDF) GetObjects(className string) []*IDFObject {
 }
 
 // get object by first field (likely name)
-func (idf *IDF) GetObjectByName(className string, objectName string) *IDFObject {
+func (idf *IDF) GetObjectByName(className string, objectName string) (*IDFObject, error) {
 	candidates := idf.GetObjects(className)
 	for _, obj := range candidates {
 		if len(obj.Values) < 1 {
 			continue
 		}
 		if strings.EqualFold(obj.Values[0], objectName) {
-			return obj
+			return obj, nil
 		}
 	}
-	return nil
+	return nil, fmt.Errorf(`Failed to find object "%s" in class "%s"`, objectName, className)
 }
 
 // get value of field as string (case-insensitive, also returns error). "" if empty
@@ -282,27 +282,27 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 
 // format setting
 type formatConfig struct {
-	ClassIndent    string // indent for class names
-	FieldIndent    string // indent for fields
-	FieldSize      int    // minimum size for field values
-	IncludeComment bool   // include comments
+	classIndent string // indent for class names
+	fieldIndent string // indent for fields
+	fieldSize   int    // minimum size for field values
+	compact     bool   // compact mode
 }
 
 // generate formatConfig
-func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int, includeComment bool) formatConfig {
+func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int) formatConfig {
 	return formatConfig{
-		ClassIndent:    strings.Repeat(" ", classIndentSize),
-		FieldIndent:    strings.Repeat(" ", fieldIndentSize),
-		FieldSize:      fieldSize,
-		IncludeComment: includeComment,
+		classIndent: strings.Repeat(" ", classIndentSize),
+		fieldIndent: strings.Repeat(" ", fieldIndentSize),
+		fieldSize:   fieldSize,
+		compact:     false,
 	}
 }
 
 // default value
-var defaultFormatConfig = NewFormatConfig(0, 4, 25, true)
+var defaultFormatConfig = NewFormatConfig(0, 4, 25)
 
 // minimal format
-var MinimalFormatConfig = NewFormatConfig(0, 1, 0, false)
+var MinimalFormatConfig = formatConfig{"", "", 0, true}
 
 // write IDFObject to io.Writer with formatConfig
 func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
@@ -315,8 +315,13 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 		return err
 	}
 
+	linebreak := "\n"
+	if cfg.compact {
+		linebreak = ""
+	}
+
 	// 1. print class name
-	if err := writeStr(cfg.ClassIndent + obj.Class.Name); err != nil {
+	if err := writeStr(cfg.classIndent + obj.Class.Name); err != nil {
 		return totalWritten, err
 	}
 
@@ -331,12 +336,12 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 
 	// 3. if all fields are empty, print ; and return
 	if lastIdx == -1 {
-		err := writeStr(";\n\n")
+		err := writeStr(";" + linebreak)
 		return totalWritten, err
 	}
 
 	// 4. if not, print , after class name
-	if err := writeStr(",\n"); err != nil {
+	if err := writeStr("," + linebreak); err != nil {
 		return totalWritten, err
 	}
 
@@ -352,18 +357,25 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 		}
 
 		// add padding to field value string
-		if cfg.FieldSize > 0 {
-			fieldValString = fmt.Sprintf("%-*s", cfg.FieldSize, fieldValString)
+		if cfg.fieldSize > 0 {
+			fieldValString = fmt.Sprintf("%-*s", cfg.fieldSize, fieldValString)
 		}
 
 		// comment string
 		commentString := ""
-		if cfg.IncludeComment {
+		if !cfg.compact {
 			commentString = " !- " + obj.Class.GetFieldName(i, true)
 		}
 
 		// final line
-		if err := writeStr(cfg.FieldIndent + fieldValString + commentString + "\n"); err != nil {
+		if err := writeStr(cfg.fieldIndent + fieldValString + commentString + linebreak); err != nil {
+			return totalWritten, err
+		}
+	}
+
+	// if compact mode, add final linebreak
+	if cfg.compact {
+		if err := writeStr("\n"); err != nil {
 			return totalWritten, err
 		}
 	}
@@ -392,7 +404,7 @@ func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 		}
 
 		// add group separator if changed
-		if cfg.IncludeComment && currentGroup != classDef.Group {
+		if !cfg.compact && currentGroup != classDef.Group {
 			currentGroup = classDef.Group
 			n, err := fmt.Fprintf(w, "\n! ***%s***\n", strings.ToUpper(currentGroup))
 			totalWritten += int64(n)

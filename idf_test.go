@@ -44,7 +44,7 @@ func TestIDFEdit(t *testing.T) {
 
 	fmt.Println(idf)
 	fmt.Println("---")
-	v := idf.GetObjectByName("version", "24.2")
+	v, _ := idf.GetObjectByName("version", "24.2")
 	fmt.Println(v)
 	fmt.Println("---")
 	idf.RemoveObject(v)
@@ -90,7 +90,7 @@ func TestIDFEdit(t *testing.T) {
 	fmt.Println(string(formattedJSON))
 
 	fmt.Println(idf)
-	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8, true)))
+	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8)))
 }
 
 func TestIDFParseAndSave(t *testing.T) {
@@ -111,6 +111,32 @@ func TestIDFParseAndSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error occurred while saving IDF: %v\n", err)
 	}
+}
+
+func TestIDFFormat(t *testing.T) {
+	filepath := "testdata/RefBldgMediumOfficeNew2004_Chicago_Test.idf"
+
+	idd, err := ParseIDDFile("testdata/V24-2-0-Energy+.idd")
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
+	}
+
+	idf, err := ParseIDFFile(filepath, idd)
+	if err != nil {
+		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
+	}
+
+	for _, surf := range idf.GetObjects("BUILDINGSURFACE:DETAILED") {
+		idf.RemoveObject(surf)
+	}
+
+	fmt.Println(idf)
+	fmt.Println("---")
+	fmt.Println(idf.Format(NewFormatConfig(5, 10, 8)))
+	fmt.Println("---")
+	fmt.Println(idf.Format(MinimalFormatConfig))
+	fmt.Println("---")
+	fmt.Println(idf.Format(NewFormatConfig(0, 0, 0)))
 }
 
 func TestPerformance(t *testing.T) {
