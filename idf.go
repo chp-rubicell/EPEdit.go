@@ -230,7 +230,13 @@ func (obj *IDFObject) Update(values Fields) error {
 }
 
 // add object to IDF
-func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, error) {
+// AddObject(..., false) to ignore default values
+func (idf *IDF) AddObject(className string, initialValues Fields, defaultValues ...bool) (*IDFObject, error) {
+	addDefaultValues := true
+	if len(defaultValues) > 0 {
+		addDefaultValues = defaultValues[0]
+	}
+
 	searchKey := strings.ToUpper(className)
 	classDef, exists := idf.IDD.Classes[searchKey]
 	if !exists {
@@ -253,8 +259,10 @@ func (idf *IDF) AddObject(className string, initialValues Fields) (*IDFObject, e
 	}
 
 	// add default values
-	for _, idx := range classDef.FieldIdxWithDefault {
-		newObj.SetByIndex(idx, classDef.Fields[idx].Default)
+	if addDefaultValues {
+		for _, idx := range classDef.FieldIdxWithDefault {
+			newObj.SetByIndex(idx, classDef.Fields[idx].Default)
+		}
 	}
 
 	// updated fields using provided initial values

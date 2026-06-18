@@ -120,8 +120,12 @@ func TestDefaultValue(t *testing.T) {
 	}
 
 	idf := NewIDF(idd)
-	idf.AddObject("OutputControl:Files", nil)
+	idf.AddObject("OutputControl:Files", Fields{"Output CSV": "Yes"}, false)
+	fmt.Println(idf)
+	fmt.Println("---")
 
+	idf = NewIDF(idd)
+	idf.AddObject("OutputControl:Files", nil)
 	fmt.Println(idf)
 }
 
