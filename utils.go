@@ -21,6 +21,8 @@ func AnyToString(value any) string {
 		} else {
 			return "No"
 		}
+	case nil:
+		return ""
 	default:
 		// use default formatter
 		return fmt.Sprintf("%v", v)
