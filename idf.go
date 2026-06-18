@@ -483,7 +483,7 @@ func (idf *IDF) Save(filename string, cfg ...formatConfig) error {
 	// create file
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("Failed to create file (%s): %w", filename, err)
+		return fmt.Errorf(`Failed to create file "%s": %w`, filename, err)
 	}
 	defer file.Close()
 
