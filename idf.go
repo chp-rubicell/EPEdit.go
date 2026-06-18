@@ -191,27 +191,31 @@ func (obj *IDFObject) GetInt(fieldName string) int {
 
 // * IDF manipulation API (Create, Update, Delete)
 
+// set value of field using field index
+func (obj *IDFObject) SetByIndex(fieldIndex int, value any) {
+	// 1. if targetIndex extends beyond current length
+	if fieldIndex >= len(obj.Values) {
+		if fieldIndex < cap(obj.Values) {
+			// extend slice's length by re-slicing it
+			obj.Values = obj.Values[:fieldIndex+1]
+		} else {
+			// increase capacity
+			needed := fieldIndex + 1 - len(obj.Values)
+			obj.Values = append(obj.Values, make([]string, needed)...)
+		}
+	}
+
+	// 2. set value
+	obj.Values[fieldIndex] = strings.TrimSpace(AnyToString(value))
+}
+
 // set value of field (case-insensitive)
 func (obj *IDFObject) Set(fieldName string, value any) error {
 	targetIndex, err := obj.Class.FindFieldIndex(fieldName)
 	if err != nil {
 		return err
 	}
-
-	// 1. if targetIndex extends beyond current length
-	if targetIndex >= len(obj.Values) {
-		if targetIndex < cap(obj.Values) {
-			// extend slice's length by re-slicing it
-			obj.Values = obj.Values[:targetIndex+1]
-		} else {
-			// increase capacity
-			needed := targetIndex + 1 - len(obj.Values)
-			obj.Values = append(obj.Values, make([]string, needed)...)
-		}
-	}
-
-	// 2. set value
-	obj.Values[targetIndex] = strings.TrimSpace(AnyToString(value))
+	obj.SetByIndex(targetIndex, value)
 	return nil
 }
 
