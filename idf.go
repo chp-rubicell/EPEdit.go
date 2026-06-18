@@ -373,13 +373,6 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 		}
 	}
 
-	// if compact mode, add final linebreak
-	if cfg.compact {
-		if err := writeStr("\n"); err != nil {
-			return totalWritten, err
-		}
-	}
-
 	return totalWritten, nil
 }
 
@@ -424,6 +417,15 @@ func (idf *IDF) writeWithFormat(w io.Writer, cfg formatConfig) (int64, error) {
 			// write IDFObject
 			n2, err := obj.writeWithFormat(w, cfg)
 			totalWritten += n2
+			if err != nil {
+				return totalWritten, err
+			}
+		}
+
+		// if compact mode, add linebreak between classes
+		if cfg.compact {
+			n1, err := w.Write([]byte("\n"))
+			totalWritten += int64(n1)
 			if err != nil {
 				return totalWritten, err
 			}
