@@ -64,7 +64,7 @@ func main() {
 	// ? Create / Delete
 
 	// add new object
-	newMat, err := idf.AddObject("MATERIAL", epedit.Fields{"Name": "MyNewInsulation"})
+	newMat, err := idf.AddObject("MATERIAL", epedit.Fields{"Name": "MyNewInsulation"}, false)
 	newMat.Set("Thickness", 0.05)
 	newMat.Set("Conductivity", 0.0314)
 

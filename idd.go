@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+// TODO: improve robustness in parseClassProperty and parseFieldProperty
+
 // * Field and class definition
 
 // IDD field definition (ex. Outside_Boundary_Condition)
@@ -215,7 +217,7 @@ func parseClassProperty(class *ClassDef, val string, lineNum int) error {
 			return fmt.Errorf(`Line %d: No number found after \extensible (%s)`, lineNum, val)
 		}
 	} else if strings.HasPrefix(val, `\min-fields`) {
-		parts := strings.Split(val, " ")
+		parts := strings.Fields(val)
 		if len(parts) >= 2 {
 			minFieldsString := strings.TrimSpace(parts[1])
 			minFields, err := strconv.Atoi(minFieldsString)
@@ -377,8 +379,15 @@ func ParseIDDFile(filename string) (*IDD, error) {
 
 // get index from field name (case-insensitive)
 func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
+	if class == nil {
+		return -1, fmt.Errorf("cannot find field %q: nil ClassDef", fieldName)
+	}
+
 	// convert to lowercase
 	searchKey := strings.ToLower(fieldName)
+	if searchKey == "" {
+		return -1, fmt.Errorf(`empty field name in class "%s"`, class.Name)
+	}
 
 	// 1. base fields
 	if idx, exists := class.BaseFieldIndexMap[searchKey]; exists {
@@ -386,8 +395,12 @@ func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
 	}
 
 	// 2. extensible fields
-	if class.Extensible != nil {
+	if class.Extensible != nil &&
+		class.Extensible.BeginIndex >= 0 &&
+		class.Extensible.Size > 0 {
+
 		ext := class.Extensible
+
 		for offset, pat := range ext.Patterns {
 			if after, found := strings.CutPrefix(searchKey, pat.SearchPrefix); found {
 				if numStr, found := strings.CutSuffix(after, pat.SearchSuffix); found {
@@ -405,6 +418,10 @@ func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
 
 // get field name from index
 func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
+	if class == nil || index < 0 {
+		return ""
+	}
+
 	ext := class.Extensible
 
 	// base fields
@@ -422,7 +439,7 @@ func (class *ClassDef) GetFieldName(index int, addUnits bool) string {
 	// extensible fields
 	groupNum := (index-ext.BeginIndex)/ext.Size + 1
 	offset := (index - ext.BeginIndex) % ext.Size
-	if offset >= len(ext.Patterns) {
+	if offset < 0 || offset >= len(ext.Patterns) {
 		return ""
 	}
 	pat := ext.Patterns[offset]

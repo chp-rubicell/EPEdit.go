@@ -35,7 +35,11 @@ func NewIDF(idd *IDD) *IDF {
 // * Parse IDF file into IDF struct
 
 func ParseIDF(r io.Reader, idd *IDD) (*IDF, error) {
-	lexer := NewLexer(r, false) // turn of IDD mode
+	if idd == nil || idd.Classes == nil {
+		return nil, fmt.Errorf("ParseIDF requires a non-nil, initialized IDD")
+	}
+
+	lexer := NewLexer(r, false) // turn off IDD mode
 	idf := NewIDF(idd)
 
 	var currentValues []string
@@ -47,12 +51,29 @@ TokenLoop:
 
 		switch tok.Type {
 		case TokenEOF:
+			// If an object has started but no semicolon closed it,
+			// do not silently drop it.
+			if lastText != "" || len(currentValues) > 0 {
+				return nil, fmt.Errorf(
+					`IDF parsing error (Line %d): unterminated object before EOF; missing ";"`,
+					lexer.LineNum,
+				)
+			}
 			break TokenLoop
 
 		case TokenError:
 			return nil, fmt.Errorf(`IDF parsing error (Line %d): %s`, lexer.LineNum, tok.Value)
 
 		case TokenText:
+			// With the updated lexer, normal IDF lines should not produce
+			// adjacent text tokens. If this happens, the input is ambiguous.
+			if lastText != "" {
+				return nil, fmt.Errorf(
+					`IDF parsing error (Line %d): missing delimiter before %q`,
+					lexer.LineNum,
+					tok.Value,
+				)
+			}
 			lastText = tok.Value
 
 		case TokenComma:
@@ -62,28 +83,30 @@ TokenLoop:
 		case TokenSemicolon:
 			currentValues = append(currentValues, lastText)
 
-			if len(currentValues) > 0 {
-				className := currentValues[0]
-				searchKey := strings.ToUpper(className)
-
-				classDef, exists := idd.Classes[searchKey]
-				if !exists {
-					return nil, fmt.Errorf(`Line %d: Class name "%s" not defined in IDD`, lexer.LineNum, className)
-				}
-
-				obj := &IDFObject{
-					Class:  classDef,
-					Values: currentValues[1:], // excluding first field (class name)
-				}
-
-				idf.Objects[searchKey] = append(idf.Objects[searchKey], obj)
+			if len(currentValues) == 0 || strings.TrimSpace(currentValues[0]) == "" {
+				return nil, fmt.Errorf(`IDF parsing error (Line %d): empty IDF object or missing class name`, lexer.LineNum)
 			}
+
+			className := currentValues[0]
+			searchKey := strings.ToUpper(className)
+
+			classDef, exists := idd.Classes[searchKey]
+			if !exists {
+				return nil, fmt.Errorf(`IDF parsing error (Line %d): Class name "%s" not defined in IDD`, lexer.LineNum, className)
+			}
+
+			obj := &IDFObject{
+				Class:  classDef,
+				Values: append([]string(nil), currentValues[1:]...), // excluding class name
+			}
+
+			idf.Objects[searchKey] = append(idf.Objects[searchKey], obj)
 
 			currentValues = nil
 			lastText = ""
 
 		default:
-			return nil, fmt.Errorf(`Line %d: Unrecognized token type (%d)`, lexer.LineNum, tok.Type)
+			return nil, fmt.Errorf(`IDF parsing error (Line %d): Unrecognized token type (%d)`, lexer.LineNum, tok.Type)
 		}
 	}
 
