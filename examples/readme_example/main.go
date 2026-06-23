@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	epedit "github.com/chp-rubicell/EPEdit.go"
@@ -41,6 +42,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println(building)
 
 	// Add a new object with initial field values.
 	_, err = idf.AddObject("RunPeriod", epedit.Fields{
