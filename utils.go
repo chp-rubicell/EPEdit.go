@@ -10,19 +10,46 @@ func AnyToString(value any) string {
 	switch v := value.(type) {
 	case string:
 		return v
+
+	case bool:
+		// EnergyPlus Yes/No convention
+		if v {
+			return "Yes"
+		}
+		return "No"
+
 	case int:
-		return strconv.Itoa(v)
+		return strconv.FormatInt(int64(v), 10)
+	case int8:
+		return strconv.FormatInt(int64(v), 10)
+	case int16:
+		return strconv.FormatInt(int64(v), 10)
+	case int32:
+		return strconv.FormatInt(int64(v), 10)
+	case int64:
+		return strconv.FormatInt(v, 10)
+
+	case uint:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint8:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint16:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint32:
+		return strconv.FormatUint(uint64(v), 10)
+	case uint64:
+		return strconv.FormatUint(v, 10)
+
+	// TODO: consider using 'g' for extremely small or big values
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
 	case float64:
 		// prec -1: "15.0" -> "15", "15.123" -> "15.123"
 		return strconv.FormatFloat(v, 'f', -1, 64)
-	case bool:
-		if v {
-			return "Yes"
-		} else {
-			return "No"
-		}
+
 	case nil:
 		return ""
+
 	default:
 		// use default formatter
 		return fmt.Sprintf("%v", v)

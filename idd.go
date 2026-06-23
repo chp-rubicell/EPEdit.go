@@ -97,7 +97,7 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 			break
 		}
 		if tok.Type == TokenError {
-			return nil, fmt.Errorf("Parsing error (Line %d): %s", lexer.LineNum, tok.Value)
+			return nil, fmt.Errorf("parsing error (Line %d): %s", lexer.LineNum, tok.Value)
 		}
 
 		// 1. text token
@@ -363,13 +363,13 @@ func extractPrefixSuffix(name string) (prefix string, suffix string) {
 func ParseIDDFile(filename string) (*IDD, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open IDD file (%s): %w", filename, err)
+		return nil, fmt.Errorf("failed to open IDD file (%s): %w", filename, err)
 	}
 	defer file.Close()
 
 	idd, err := ParseIDD(file)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse IDD: %w", err)
+		return nil, fmt.Errorf("failed to parse IDD: %w", err)
 	}
 
 	return idd, nil
@@ -413,7 +413,7 @@ func (class *ClassDef) FindFieldIndex(fieldName string) (int, error) {
 		}
 	}
 
-	return -1, fmt.Errorf(`Unknown field name in class "%s": %s`, class.Name, fieldName)
+	return -1, fmt.Errorf(`unknown field name in class "%s": %s`, class.Name, fieldName)
 }
 
 // get field name from index

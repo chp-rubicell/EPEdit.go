@@ -120,13 +120,13 @@ TokenLoop:
 func ParseIDFFile(filename string, idd *IDD) (*IDF, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to open IDF file (%s): %w", filename, err)
+		return nil, fmt.Errorf("failed to open IDF file (%s): %w", filename, err)
 	}
 	defer file.Close()
 
 	idf, err := ParseIDF(file, idd)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse IDF: %w", err)
+		return nil, fmt.Errorf("failed to parse IDF: %w", err)
 	}
 
 	return idf, nil
@@ -150,7 +150,7 @@ func (idf *IDF) GetObjectByName(className string, objectName string) (*IDFObject
 			return obj, nil
 		}
 	}
-	return nil, fmt.Errorf(`Failed to find object "%s" in class "%s"`, objectName, className)
+	return nil, fmt.Errorf(`failed to find object "%s" in class "%s"`, objectName, className)
 }
 
 // get value of field as string (case-insensitive, also returns error). "" if empty
@@ -260,7 +260,7 @@ func (idf *IDF) AddObject(className string, initialValues Fields, defaultValues 
 	searchKey := strings.ToUpper(className)
 	classDef, exists := idf.IDD.Classes[searchKey]
 	if !exists {
-		return nil, fmt.Errorf("Unknown class: %s", className)
+		return nil, fmt.Errorf("unknown class: %s", className)
 	}
 
 	// minimum number of fields to preallocate
@@ -287,7 +287,7 @@ func (idf *IDF) AddObject(className string, initialValues Fields, defaultValues 
 	// updated fields using provided initial values
 	err := newObj.Update(initialValues)
 	if err != nil {
-		return nil, fmt.Errorf("Error while setting initial values: %w", err)
+		return nil, fmt.Errorf("error while setting initial values: %w", err)
 	}
 
 	idf.Objects[searchKey] = append(idf.Objects[searchKey], newObj)
@@ -301,7 +301,7 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 
 	list, exists := idf.Objects[searchKey]
 	if !exists {
-		return fmt.Errorf(`Failed to remove object: class "%s" does not exists`, target.Class.Name)
+		return fmt.Errorf(`failed to remove object: class "%s" does not exists`, target.Class.Name)
 	}
 
 	for i, obj := range list {
@@ -313,7 +313,7 @@ func (idf *IDF) RemoveObject(target *IDFObject) error {
 		}
 	}
 
-	return fmt.Errorf(`Failed to remove object: can't find object in class "%s" does not exists`, target.Class.Name)
+	return fmt.Errorf(`failed to remove object: can't find object in class "%s"`, target.Class.Name)
 }
 
 // * Export
@@ -521,7 +521,7 @@ func (idf *IDF) Save(filename string, cfg ...formatConfig) error {
 	// create file
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf(`Failed to create file "%s": %w`, filename, err)
+		return fmt.Errorf(`failed to create file "%s": %w`, filename, err)
 	}
 	defer file.Close()
 
@@ -531,16 +531,16 @@ func (idf *IDF) Save(filename string, cfg ...formatConfig) error {
 	// add header
 	header := fmt.Sprintf("! Generated using EPEdit.go\n! Saved at: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	if _, err := bufferedWriter.WriteString(header); err != nil {
-		return fmt.Errorf("Failed to write header: %w", err)
+		return fmt.Errorf("failed to write header: %w", err)
 	}
 
 	// write idf to buffer
 	if _, err := idf.writeWithFormat(bufferedWriter, activeCfg); err != nil {
-		return fmt.Errorf("Failed to write IDF: %w", err)
+		return fmt.Errorf("failed to write IDF: %w", err)
 	}
 	// flush remaining data
 	if err := bufferedWriter.Flush(); err != nil {
-		return fmt.Errorf("Failed to write IDF: %w", err)
+		return fmt.Errorf("failed to write IDF: %w", err)
 	}
 
 	return nil
