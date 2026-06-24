@@ -58,7 +58,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Add a new object without initial field values.
+	// Add a new object without default values.
 	_, err = idf.AddObject(
 		"Material",
 		epedit.Fields{
