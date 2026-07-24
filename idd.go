@@ -320,7 +320,10 @@ func (class *ClassDef) fixMissingBeginIndex() error {
 	for i := 0; i < ext.Size; i++ {
 		fieldName := class.Fields[numFields-ext.Size+i].Name
 		prefix, suffix := extractPrefixSuffix(fieldName)
-		patterns[i] = ExtPattern{Prefix: prefix, Suffix: suffix}
+		patterns[i] = ExtPattern{
+			SearchPrefix: strings.ToLower(prefix),
+			SearchSuffix: strings.ToLower(suffix),
+		}
 	}
 
 	// 2. match pattern from back
@@ -330,10 +333,10 @@ func (class *ClassDef) fixMissingBeginIndex() error {
 		offset := ext.Size - 1 - ((numFields - 1 - i) % ext.Size)
 
 		pattern := patterns[offset]
-		name := class.Fields[i].Name
+		lowerName := strings.ToLower(class.Fields[i].Name)
 
 		// if pattern does not match, that is the beginning index
-		if !strings.HasPrefix(name, pattern.Prefix) || !strings.HasSuffix(name, pattern.Suffix) {
+		if !strings.HasPrefix(lowerName, pattern.SearchPrefix) || !strings.HasSuffix(lowerName, pattern.SearchSuffix) {
 			break
 		}
 
