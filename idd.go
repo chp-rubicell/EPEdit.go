@@ -333,7 +333,7 @@ func (class *ClassDef) fixMissingBeginIndex() error {
 		offset := ext.Size - 1 - ((numFields - 1 - i) % ext.Size)
 
 		pattern := patterns[offset]
-		lowerName := strings.ToLower(class.Fields[i].Name)
+		lowerName := strings.ToLower(class.Fields[i].Name) // use lowercase for matching
 
 		// if pattern does not match, that is the beginning index
 		if !strings.HasPrefix(lowerName, pattern.SearchPrefix) || !strings.HasSuffix(lowerName, pattern.SearchSuffix) {
