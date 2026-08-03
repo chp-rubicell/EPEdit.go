@@ -337,7 +337,7 @@ func NewFormatConfig(classIndentSize int, fieldIndentSize int, fieldSize int) fo
 }
 
 // default value
-var defaultFormatConfig = NewFormatConfig(0, 4, 25)
+var defaultFormatConfig = NewFormatConfig(0, 4, 24)
 
 // minimal format
 var MinimalFormatConfig = formatConfig{"", "", 0, true}
@@ -371,6 +371,9 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 			break
 		}
 	}
+	if obj.Class.MinFields > 0 && lastIdx < obj.Class.MinFields-1 {
+		lastIdx = obj.Class.MinFields - 1
+	}
 
 	// 3. if all fields are empty, print ; and return
 	if lastIdx == -1 {
@@ -385,7 +388,10 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 
 	// 5. print until lastIdx
 	for i := 0; i <= lastIdx; i++ {
-		val := obj.Values[i]
+		val := ""
+		if i < len(obj.Values) {
+			val = obj.Values[i]
+		}
 
 		// field value string
 		fieldValString := val + ","
@@ -396,13 +402,19 @@ func (obj *IDFObject) writeWithFormat(w io.Writer, cfg formatConfig) (int64, err
 
 		// add padding to field value string
 		if cfg.fieldSize > 0 {
-			fieldValString = fmt.Sprintf("%-*s", cfg.fieldSize, fieldValString)
+			if len(fieldValString) <= cfg.fieldSize+1 {
+				// +1 to include separator
+				// TODO maybe inequal?
+				fieldValString = fmt.Sprintf("%-*s", cfg.fieldSize+1, fieldValString)
+			} else {
+				fieldValString += "  "
+			}
 		}
 
 		// comment string
 		commentString := ""
 		if !cfg.compact {
-			commentString = " !- " + obj.Class.GetFieldName(i, true)
+			commentString = "!- " + obj.Class.GetFieldName(i, true)
 		}
 
 		// final line
