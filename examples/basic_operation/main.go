@@ -29,7 +29,7 @@ func main() {
 		fmt.Printf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := epedit.ParseIDFFile(filepath, idd)
+	idf, err := epedit.ParseIDFFile(idd, filepath)
 	if err != nil {
 		fmt.Printf("Error occurred while opening and parsing IDF: %v\n", err)
 	}

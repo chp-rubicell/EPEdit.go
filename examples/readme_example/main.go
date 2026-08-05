@@ -15,7 +15,7 @@ func main() {
 	}
 
 	// Load an existing IDF file using the parsed IDD.
-	idf, err := epedit.ParseIDFFile("input.idf", idd)
+	idf, err := epedit.ParseIDFFile(idd, "input.idf")
 	if err != nil {
 		log.Fatal(err)
 	}

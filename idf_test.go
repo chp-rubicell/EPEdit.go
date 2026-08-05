@@ -17,7 +17,7 @@ func TestParseIDF(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := ParseIDFFile(filepath, idd)
+	idf, err := ParseIDFFile(idd, filepath)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -37,7 +37,7 @@ func TestIDFEdit(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := ParseIDFFile(filepath, idd)
+	idf, err := ParseIDFFile(idd, filepath)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -102,7 +102,7 @@ func TestIDFParseAndSave(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := ParseIDFFile(filepath, idd)
+	idf, err := ParseIDFFile(idd, filepath)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -137,7 +137,7 @@ func TestIDFFormat(t *testing.T) {
 		t.Fatalf("Error occurred while opening and parsing IDD: %v\n", err)
 	}
 
-	idf, err := ParseIDFFile(filepath, idd)
+	idf, err := ParseIDFFile(idd, filepath)
 	if err != nil {
 		t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 	}
@@ -172,7 +172,7 @@ func TestPerformance(t *testing.T) {
 		durationIDD += time.Since(startTime)
 
 		startTime = time.Now()
-		idf, err := ParseIDFFile("testdata/RefBldgMediumOfficeNew2004_Chicago.idf", idd)
+		idf, err := ParseIDFFile(idd, "testdata/RefBldgMediumOfficeNew2004_Chicago.idf")
 		if err != nil {
 			t.Fatalf("Error occurred while opening and parsing IDF: %v\n", err)
 		}

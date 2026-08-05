@@ -34,7 +34,7 @@ func NewIDF(idd *IDD) *IDF {
 
 // * Parse IDF file into IDF struct
 
-func ParseIDF(r io.Reader, idd *IDD) (*IDF, error) {
+func ParseIDF(idd *IDD, r io.Reader) (*IDF, error) {
 	if idd == nil || idd.Classes == nil {
 		return nil, fmt.Errorf("ParseIDF requires a non-nil, initialized IDD")
 	}
@@ -117,14 +117,14 @@ TokenLoop:
 
 // * Open and parse IDD file
 
-func ParseIDFFile(filename string, idd *IDD) (*IDF, error) {
+func ParseIDFFile(idd *IDD, filename string) (*IDF, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open IDF file (%s): %w", filename, err)
 	}
 	defer file.Close()
 
-	idf, err := ParseIDF(file, idd)
+	idf, err := ParseIDF(idd, file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse IDF: %w", err)
 	}
