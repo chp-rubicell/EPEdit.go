@@ -1,9 +1,8 @@
 <p align="center">
-    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest">
-        <img src="https://github.com/chp-rubicell/EPEdit.go/blob/main/_assets/epeditgo.svg" width="256" alt="EPEdit.go"><br/>
-    </a>
+    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://github.com/chp-rubicell/EPEdit.go/raw/main/_assets/epeditgo.svg" width="256" alt="EPEdit.go" /></a>
+    <br/>
     <!-- <img src="doc/epedit.svg" width="256" alt="EPEdit.go"><br/> -->
-    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://img.shields.io/github/release/chp-rubicell/EPEdit.go.svg?style=flat-square&maxAge=600" alt="Downloads"></a>
+    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://img.shields.io/github/release/chp-rubicell/EPEdit.go.svg?style=flat-square&maxAge=600" alt="releases" /></a>
 </p>
 
 **EPEdit.go** is a Go library for parsing, editing, and formatting EnergyPlus Input Data Files (`.idf`).
@@ -17,7 +16,22 @@
 - **Export to IDF**: Serialize the modified model back into a valid `.idf` file string.
 
 
+## Installation
+
+```bash
+go get github.com/chp-rubicell/EPEdit.go
+```
+
+
 ## Usage
+
+See `examples/readme_example/`.
+
+### Import
+
+```go
+import epedit "github.com/chp-rubicell/EPEdit.go"
+```
 
 ### Open IDD and IDF files
 
@@ -122,6 +136,7 @@ if err := idf.RemoveObject(obj); err != nil {
 ```
 
 ### Save IDF files
+
 ```go
 // Save the modified IDF file.
 if err := idf.Save("output.idf"); err != nil {
@@ -132,7 +147,11 @@ if err := idf.Save("output.idf"); err != nil {
 
 ## Related projects
 
-- [EPEdit.js](https://github.com/chp-rubicell/EPEdit.js)
+<p align="center">
+    <a href="https://github.com/chp-rubicell/EPEdit.py"><img src="https://github.com/chp-rubicell/EPEdit.py/raw/main/docs/assets/epeditpy.svg" width="200" alt="EPEdit.py" /></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/chp-rubicell/EPEdit.js"><img src="https://github.com/chp-rubicell/EPEdit.js/raw/main/doc/epedit.svg" width="200" alt="EPEdit.js" /></a>
+</p>
 
 
 ## License
