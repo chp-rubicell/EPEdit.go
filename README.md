@@ -148,9 +148,8 @@ if err := idf.Save("output.idf"); err != nil {
 ## Related projects
 
 <p align="center">
-    <a href="https://github.com/chp-rubicell/EPEdit.py"><img src="https://github.com/chp-rubicell/EPEdit.py/raw/main/docs/assets/epeditpy.svg" width="200" alt="EPEdit.py" /></a>
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    <a href="https://github.com/chp-rubicell/EPEdit.js"><img src="https://github.com/chp-rubicell/EPEdit.js/raw/main/doc/epedit.svg" width="200" alt="EPEdit.js" /></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/chp-rubicell/EPEdit.py"><img src="https://github.com/chp-rubicell/EPEdit.py/raw/main/docs/assets/epeditpy.svg" width="200" alt="EPEdit.py" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://github.com/chp-rubicell/EPEdit.js"><img src="https://github.com/chp-rubicell/EPEdit.js/raw/main/doc/epedit.svg" width="200" alt="EPEdit.js" /></a>&nbsp;&nbsp;&nbsp;&nbsp;
 </p>
 
 
