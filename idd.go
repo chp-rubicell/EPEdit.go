@@ -235,7 +235,7 @@ func parseClassProperty(class *ClassDef, val string, lineNum int) error {
 }
 
 func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
-	if after, found := strings.CutPrefix(val, `\field`); found {
+	if after, found := strings.CutPrefix(val, `\field `); found {
 		// replace temporary names (ex. A1, N1)
 		field.Name = strings.TrimSpace(after)
 	} else if val == `\required-field` {
@@ -245,9 +245,9 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		if class.Extensible != nil {
 			class.Extensible.BeginIndex = len(class.Fields) - 1
 		}
-	} else if after, found := strings.CutPrefix(val, `\units`); found {
+	} else if after, found := strings.CutPrefix(val, `\units `); found {
 		field.Units = strings.TrimSpace(after)
-	} else if after, found := strings.CutPrefix(val, `\default`); found {
+	} else if after, found := strings.CutPrefix(val, `\default `); found {
 		defaultValue := strings.TrimSpace(after)
 		field.Default = defaultValue
 		// if field has default value, add index to cache
@@ -258,9 +258,9 @@ func parseFieldProperty(class *ClassDef, field *FieldDef, val string) {
 		field.Autosizable = true
 	} else if val == `\autocalculatable` {
 		field.Autocalculatable = true
-	} else if after, found := strings.CutPrefix(val, `\type`); found {
+	} else if after, found := strings.CutPrefix(val, `\type `); found {
 		field.Type = strings.TrimSpace(after)
-	} else if after, found := strings.CutPrefix(val, `\key`); found {
+	} else if after, found := strings.CutPrefix(val, `\key `); found {
 		field.Choices = append(field.Choices, strings.TrimSpace(after))
 	}
 	// TODO: add more later
