@@ -65,14 +65,14 @@ fmt.Println(building)
 ```
 ```
 Building,
-    My Building,              !- Name
-    0,                        !- North Axis {deg}
-    City,                     !- Terrain
-    0.0400,                   !- Loads Convergence Tolerance Value {W}
-    0.2000,                   !- Temperature Convergence Tolerance Value {deltaC}
-    FullInteriorAndExterior,  !- Solar Distribution
-    50,                       !- Maximum Number of Warmup Days
-    5;                        !- Minimum Number of Warmup Days
+    My Building,             !- Name
+    0,                       !- North Axis {deg}
+    City,                    !- Terrain
+    0.0400,                  !- Loads Convergence Tolerance Value {W}
+    0.2000,                  !- Temperature Convergence Tolerance Value {deltaC}
+    FullInteriorAndExterior, !- Solar Distribution
+    50,                      !- Maximum Number of Warmup Days
+    5;                       !- Minimum Number of Warmup Days
 ```
 
 ### Add new objects
