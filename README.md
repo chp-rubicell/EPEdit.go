@@ -1,5 +1,5 @@
 <p align="center">
-    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://github.com/chp-rubicell/EPEdit.go/raw/main/_assets/epeditgo.svg" width="256" alt="EPEdit.go" /></a>
+    <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://github.com/chp-rubicell/EPEdit.go/raw/main/_assets/epeditgo.svg" width="300" alt="EPEdit.go" /></a>
     <br/>
     <!-- <img src="doc/epedit.svg" width="256" alt="EPEdit.go"><br/> -->
     <a href="https://github.com/chp-rubicell/EPEdit.go/releases/latest"><img src="https://img.shields.io/github/release/chp-rubicell/EPEdit.go.svg?style=flat-square&maxAge=600" alt="releases" /></a>
