@@ -194,6 +194,12 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 		class.buildIndices()
 	}
 
+	// add version info (default value of the first field in Version class)
+	if versionClass, exists := idd.Classes["VERSION"]; exists {
+		if len(versionClass.Fields) > 0 {
+			idd.Version = versionClass.Fields[0].Default
+		}
+	}
 	return idd, nil
 }
 
