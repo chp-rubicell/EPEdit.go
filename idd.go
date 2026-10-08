@@ -94,10 +94,13 @@ func ParseIDD(r io.Reader) (*IDD, error) {
 		tok := lexer.NextToken()
 
 		if tok.Type == TokenEOF {
+			if state == stateInClass || lastText == "" {
+				return nil, fmt.Errorf("IDD parsing error (Line %d): unexpected EOF, missing ';' at end of class definition", lexer.LineNum)
+			}
 			break
 		}
 		if tok.Type == TokenError {
-			return nil, fmt.Errorf("parsing error (Line %d): %s", lexer.LineNum, tok.Value)
+			return nil, fmt.Errorf("IDD parsing error (Line %d): %s", lexer.LineNum, tok.Value)
 		}
 
 		// 1. text token
